@@ -424,6 +424,25 @@ class AuthController extends BaseController
                 mkdir($dir, 0777, true);
             }
 
+            // 0. ตรวจสอบและลบไฟล์ลายเซ็นเก่าของผู้ใช้นี้ทิ้งก่อนบันทึกไฟล์ใหม่
+            $userRecord = $this->userModel->find($userId);
+            if ($userRecord && !empty($userRecord['signature_img'])) {
+                $oldPath = FCPATH . $userRecord['signature_img'];
+                if (file_exists($oldPath) && is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            // ลบไฟล์ลายเซ็นเดิมของ user นี้ที่ขึ้นต้นด้วย sig_user_{userId}_ ทั้งหมดเพื่อไม่ให้มีไฟล์ขยะค้าง
+            $oldFiles = glob($dir . 'sig_user_' . $userId . '_*.png');
+            if ($oldFiles) {
+                foreach ($oldFiles as $f) {
+                    if (is_file($f)) {
+                        @unlink($f);
+                    }
+                }
+            }
+
             $filename = 'sig_user_' . $userId . '_' . time() . '.png';
             $path = $dir . $filename;
             file_put_contents($path, $img);
@@ -436,8 +455,70 @@ class AuthController extends BaseController
             ]);
 
             // 2. อัปเดตเก็บไว้ในฐานข้อมูลบุคลากร skjacth_personnel.tb_personnel โดยตรง
-            $userRecord = $this->userModel->find($userId);
             if ($userRecord) {
+                try {
+                    $db = \Config\Database::connect();
+                    $personnelBuilder = $db->table('skjacth_personnel.tb_personnel');
+                    
+                    $personnelBuilder->groupStart()
+                                     ->where('pers_username', $userRecord['email'])
+                                     ->orWhere('pers_username', $userRecord['username']);
+                    if (!empty($userRecord['pers_id'])) {
+                        $personnelBuilder->orWhere('pers_id', $userRecord['pers_id']);
+                    }
+                    $personnelBuilder->groupEnd();
+
+                    $personnelBuilder->update([
+                        'pers_signature'  => $relativeSigPath,
+                        'pers_dataUpdate' => date('Y-m-d H:i:s'),
+                    ]);
+                } catch (\Throwable $e) {
+                    log_message('error', 'Update tb_personnel pers_signature failed: ' . $e->getMessage());
+                }
+            }
+
+            session()->set('signature_img', $relativeSigPath);
+
+            return redirect()->to('/admin/profile')->with('success', 'บันทึกลายเซ็นใหม่เรียบร้อยแล้ว (ลบไฟล์ลายเซ็นเก่าออกอัตโนมัติ)');
+        }
+
+        return redirect()->to('/admin/profile')->with('error', 'ไม่พบข้อมูลลายเซ็น');
+    }
+
+    /**
+     * ลบลายเซ็นดิจิทัลเริ่มต้นของผู้ใช้งาน
+     */
+    public function deleteSignature()
+    {
+        $userId = session()->get('user_id');
+        $userRecord = $this->userModel->find($userId);
+
+        if ($userRecord) {
+            $dir = FCPATH . 'uploads/signatures/';
+            if (!empty($userRecord['signature_img'])) {
+                $oldPath = FCPATH . $userRecord['signature_img'];
+                if (file_exists($oldPath) && is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            // ลบไฟล์เก่าของ user นี้
+            $oldFiles = glob($dir . 'sig_user_' . $userId . '_*.png');
+            if ($oldFiles) {
+                foreach ($oldFiles as $f) {
+                    if (is_file($f)) {
+                        @unlink($f);
+                    }
+                }
+            }
+
+            // 1. เคลียร์ในตาราง users
+            $this->userModel->update($userId, [
+                'signature_img' => null
+            ]);
+
+            // 2. เคลียร์ในตาราง tb_personnel
+            try {
                 $db = \Config\Database::connect();
                 $personnelBuilder = $db->table('skjacth_personnel.tb_personnel');
                 
@@ -450,17 +531,19 @@ class AuthController extends BaseController
                 $personnelBuilder->groupEnd();
 
                 $personnelBuilder->update([
-                    'pers_signature'  => $relativeSigPath,
+                    'pers_signature'  => null,
                     'pers_dataUpdate' => date('Y-m-d H:i:s'),
                 ]);
+            } catch (\Throwable $e) {
+                log_message('error', 'Clear tb_personnel pers_signature failed: ' . $e->getMessage());
             }
 
-            session()->set('signature_img', $relativeSigPath);
+            session()->remove('signature_img');
 
-            return redirect()->to('/admin/profile')->with('success', 'บันทึกลายเซ็นเข้าสู่ฐานข้อมูลบุคลากรเรียบร้อยแล้ว');
+            return redirect()->to('/admin/profile')->with('success', 'ลบลายเซ็นเดิมออกจากระบบเรียบร้อยแล้ว');
         }
 
-        return redirect()->to('/admin/profile')->with('error', 'ไม่พบข้อมูลลายเซ็น');
+        return redirect()->to('/admin/profile')->with('error', 'ไม่พบบัญชีผู้ใช้งาน');
     }
 
     public function logout()

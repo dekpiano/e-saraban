@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>ศูนย์ติดตามหนังสือราชการและสถานะงาน (School e-Document Tracking)</title>
+    <title>ระบบงานสารบรรณ สกจ. | ติดตามหนังสือราชการและสถานะงาน</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= base_url('assets/img/favicon/favicon.ico') ?>" />
@@ -145,15 +145,16 @@
         }
 
         .stat-sneat-card {
-            transition: all 0.25s ease-in-out;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            border: 1.5px solid #e2e8f0 !important;
+            border: 1px solid #e2e8f0 !important;
             background: #ffffff !important;
+            border-radius: 10px !important;
         }
 
         .stat-sneat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(15, 23, 42, 0.08) !important;
             border-color: #cbd5e1 !important;
         }
 
@@ -361,6 +362,255 @@
             font-weight: 700;
             display: inline-block;
         }
+
+        /* -------------------------------------------------------------
+           MOBILE FIRST & TOUCH ENHANCEMENTS (UI/UX Master Designer)
+        ------------------------------------------------------------- */
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .doc-mobile-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 0.85rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .doc-mobile-card:active {
+            transform: scale(0.985);
+            background-color: #f8fafc;
+        }
+
+        @media (max-width: 767.98px) {
+            .hero-sneat-card h2 {
+                font-size: 1.08rem !important;
+                line-height: 1.3 !important;
+            }
+            .custom-nav-pill {
+                padding: 6px 14px !important;
+                font-size: 0.82rem !important;
+            }
+            .layout-navbar {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                margin-top: 0.5rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            .step-stepper-box {
+                padding: 0.85rem !important;
+            }
+        }
+
+        /* -------------------------------------------------------------
+           COMPACT DETACHED NAVBAR DESIGN
+        ------------------------------------------------------------- */
+        .layout-navbar.navbar-detached.navbar-compact {
+            min-height: 54px !important;
+            height: 54px !important;
+            padding: 0 0.85rem !important;
+            margin-top: 0.65rem !important;
+            margin-bottom: 0.85rem !important;
+            border-radius: 12px !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05) !important;
+        }
+        .navbar-compact .navbar-brand {
+            padding: 0;
+        }
+        .navbar-compact .nav-link {
+            font-size: 0.84rem !important;
+            padding: 0.35rem 0.65rem !important;
+            border-radius: 6px !important;
+            transition: all 0.15s ease-in-out;
+            color: #334155 !important;
+        }
+        .navbar-compact .nav-link:hover {
+            background-color: #f1f5f9 !important;
+            color: #4f46e5 !important;
+        }
+        .navbar-compact .nav-link.active {
+            background-color: #eef2ff !important;
+            color: #4338ca !important;
+            font-weight: 700 !important;
+        }
+
+        /* -------------------------------------------------------------
+           PREMIUM SNEAT MODAL DESIGN SYSTEM (PUBLIC WORKFLOW TRACKER)
+        ------------------------------------------------------------- */
+        .modal-content {
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25) !important;
+            overflow: hidden;
+            font-family: 'K2D', sans-serif !important;
+        }
+        .modal-header {
+            padding: 0.95rem 1.25rem !important;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+        .modal-header .modal-title {
+            font-weight: 700 !important;
+            font-size: 1.05rem !important;
+            color: #0f172a !important;
+            letter-spacing: -0.2px;
+        }
+        .modal-header .btn-close {
+            padding: 0.5rem !important;
+            margin: -0.25rem -0.25rem -0.25rem auto !important;
+            border-radius: 8px;
+            transition: all 0.15s ease-in-out;
+            opacity: 0.7;
+        }
+        .modal-header .btn-close:hover {
+            opacity: 1;
+            background-color: #e2e8f0;
+        }
+        .modal-body {
+            padding: 1.25rem 1.25rem !important;
+            color: #334155;
+        }
+        .modal-footer {
+            padding: 0.75rem 1.25rem !important;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0 !important;
+        }
+        .modal-footer .btn {
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            padding: 0.45rem 1rem !important;
+            font-size: 0.875rem !important;
+        }
+        .modal-backdrop.show {
+            opacity: 0.55 !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+        }
+        @media (max-width: 767.98px) {
+            .modal-dialog {
+                margin: 0.5rem !important;
+            }
+            .modal-content {
+                border-radius: 14px !important;
+            }
+            .modal-header {
+                padding: 0.85rem 1rem !important;
+            }
+            .modal-body {
+                padding: 1rem !important;
+            }
+            .modal-footer {
+                padding: 0.75rem 1rem !important;
+            }
+
+            /* Mobile Fullscreen App-style Dialog */
+            #trackModal .modal-dialog {
+                margin: 0 !important;
+                max-width: 100% !important;
+                height: 100% !important;
+            }
+            #trackModal .modal-content {
+                border-radius: 0 !important;
+                min-height: 100vh !important;
+                border: none !important;
+            }
+            #trackModal .modal-header {
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 1060 !important;
+                background: #ffffff !important;
+                box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06) !important;
+                padding: 0.75rem 1rem !important;
+            }
+            #trackModal .modal-body {
+                padding: 0.85rem !important;
+            }
+            #trackModal .modal-footer {
+                position: sticky !important;
+                bottom: 0 !important;
+                z-index: 1060 !important;
+                background: #ffffff !important;
+                box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.06) !important;
+                padding: 0.75rem 1rem !important;
+            }
+
+            /* Mobile-First Vertical Timeline for Stepper */
+            .step-stepper-modal-wrapper {
+                overflow-x: visible !important;
+                padding-bottom: 0 !important;
+            }
+            .step-stepper-modal {
+                display: flex !important;
+                flex-direction: column !important;
+                min-width: 100% !important;
+                padding: 0.5rem 0.25rem 0.5rem 0.5rem !important;
+                position: relative !important;
+            }
+            /* Vertical Timeline Connector Line */
+            .step-stepper-modal::before {
+                top: 20px !important;
+                bottom: 20px !important;
+                left: 20px !important;
+                width: 3px !important;
+                height: auto !important;
+                right: auto !important;
+                background: #cbd5e1 !important;
+            }
+            .step-stepper-modal.return-flow::before {
+                background: #86efac !important;
+            }
+            .step-item-modal {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: flex-start !important;
+                text-align: left !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 100% !important;
+                padding: 0.45rem 0 !important;
+                position: relative !important;
+            }
+            .step-bubble-modal {
+                width: 38px !important;
+                height: 38px !important;
+                min-width: 38px !important;
+                font-size: 0.95rem !important;
+                margin-bottom: 0 !important;
+                margin-right: 0.85rem !important;
+                border-width: 2.5px !important;
+                z-index: 2 !important;
+            }
+            .step-info-col {
+                flex-grow: 1 !important;
+                background: #ffffff !important;
+                border: 1.5px solid #e2e8f0 !important;
+                border-radius: 10px !important;
+                padding: 0.55rem 0.75rem !important;
+                box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04) !important;
+                text-align: left !important;
+            }
+            .step-info-col .step-title-text {
+                font-size: 0.84rem !important;
+                font-weight: 700 !important;
+                margin-bottom: 3px !important;
+            }
+            .step-stepper-box {
+                padding: 0.75rem !important;
+                border-radius: 12px !important;
+            }
+            #modalRouteTable th, #modalRouteTable td {
+                font-size: 0.76rem !important;
+                padding: 0.4rem 0.5rem !important;
+            }
+        }
     </style>
 </head>
 
@@ -376,154 +626,226 @@
     <!-- Main Content Container -->
     <div class="main-wrapper">
 
-        <!-- Sneat Header Navbar (High Contrast & Detached) -->
-        <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center glass-card my-3" id="layout-navbar" style="background: #ffffff !important;">
-            <div class="container-fluid px-2">
-                <a class="navbar-brand d-flex align-items-center me-3" href="<?= base_url('/') ?>">
-                    <span class="app-brand-logo demo me-2">
-                        <span class="badge bg-primary p-2 rounded-3 shadow-sm">
-                            <i class="bx bxs-institution fs-3 text-white"></i>
-                        </span>
+        <!-- Sneat Header Navbar (Compact & Responsive Detached) -->
+        <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center glass-card navbar-compact" id="layout-navbar" style="background: #ffffff !important;">
+            <div class="container-fluid px-1 px-sm-2 d-flex align-items-center justify-content-between">
+                <!-- Brand Logo & Title -->
+                <a class="navbar-brand d-flex align-items-center m-0" href="<?= base_url('/') ?>">
+                    <span class="badge bg-primary rounded-3 shadow-sm d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; min-width: 36px;">
+                        <i class="bx bxs-institution fs-4 text-white"></i>
                     </span>
-                    <div>
-                        <span class="fw-bolder fs-5 text-primary text-uppercase" style="letter-spacing: 0.5px;">School e-Office</span>
-                        <small class="d-block text-secondary fw-semibold" style="font-size: 0.72rem; margin-top: -2px;">ระบบสารบรรณและติดตามงานราชการ</small>
+                    <div class="lh-1">
+                        <span class="fw-bolder text-primary" style="font-size: 1.02rem; letter-spacing: 0.3px;">ระบบงานสารบรรณ สกจ.</span>
+                        <small class="d-none d-sm-block text-secondary fw-semibold" style="font-size: 0.68rem; margin-top: 2px;">โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์</small>
                     </div>
                 </a>
 
-                <div class="collapse navbar-collapse d-none d-md-flex" id="navbar-collapse">
-                    <ul class="navbar-nav me-auto">
+                <!-- Desktop Navigation Links (Visible on Large/Desktop Screens) -->
+                <div class="d-none d-xl-flex align-items-center">
+                    <ul class="navbar-nav flex-row align-items-center gap-1">
                         <li class="nav-item">
-                            <a class="nav-link active fw-bold text-primary px-3" href="<?= base_url('/') ?>">
-                                <i class="bx bx-file-find me-1"></i> ติดตามหนังสือราชการ
+                            <a class="nav-link <?= empty($currentType) ? 'active' : '' ?>" href="<?= base_url('/') ?>">
+                                <i class="bx bx-file-find me-1"></i> ติดตามหนังสือ
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark fw-semibold px-3" href="javascript:void(0)" onclick="filterTableByType('in')">
+                            <a class="nav-link <?= $currentType === 'in' ? 'active' : '' ?>" href="javascript:void(0)" onclick="filterTableByType('in')">
                                 <i class="bx bx-log-in-circle me-1 text-primary"></i> หนังสือรับ
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark fw-semibold px-3" href="javascript:void(0)" onclick="filterTableByType('out')">
+                            <a class="nav-link <?= $currentType === 'out' ? 'active' : '' ?>" href="javascript:void(0)" onclick="filterTableByType('out')">
                                 <i class="bx bx-log-out-circle me-1 text-success"></i> หนังสือส่ง
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark fw-semibold px-3" href="javascript:void(0)" onclick="filterTableByType('order')">
+                            <a class="nav-link <?= $currentType === 'order' ? 'active' : '' ?>" href="javascript:void(0)" onclick="filterTableByType('order')">
                                 <i class="bx bx-award me-1 text-warning"></i> คำสั่ง รร.
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark fw-semibold px-3" href="javascript:void(0)" onclick="filterTableByType('travel')">
+                            <a class="nav-link <?= $currentType === 'travel' ? 'active' : '' ?>" href="javascript:void(0)" onclick="filterTableByType('travel')">
                                 <i class="bx bx-briefcase-alt-2 me-1 text-info"></i> ขอไปราชการ
                             </a>
                         </li>
                     </ul>
                 </div>
 
-                <div class="navbar-nav flex-row align-items-center ms-auto">
+                <!-- Right Action Buttons & Mobile Hamburger -->
+                <div class="d-flex align-items-center gap-1">
                     <?php if ($isLoggedIn): ?>
-                        <div class="d-flex align-items-center me-2">
-                            <div class="text-end me-2 d-none d-sm-block">
-                                <span class="badge bg-success text-white fw-bold px-2 py-1" style="font-size: 0.72rem;">เข้าสู่ระบบแล้ว</span>
-                                <div class="fw-bold text-dark small"><?= esc($userFullName) ?></div>
-                            </div>
-                            <div class="avatar avatar-online">
+                        <div class="d-none d-sm-flex align-items-center bg-light rounded-pill px-2 py-0.5 border me-1">
+                            <span class="badge bg-success rounded-circle p-0 me-1.5" style="width: 7px; height: 7px; min-width: 7px;"></span>
+                            <span class="fw-bold text-dark text-truncate" style="font-size: 0.78rem; max-width: 125px;"><?= esc($userFullName) ?></span>
+                        </div>
+                        <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-primary btn-sm px-2.5 py-1 shadow-sm fw-semibold d-inline-flex align-items-center" style="font-size: 0.82rem; height: 34px;" title="แดชบอร์ดงานของฉัน">
+                            <i class="bx bx-grid-alt me-1"></i> <span>แดชบอร์ด</span>
+                        </a>
+                    <?php else: ?>
+                        <a href="<?= base_url('login') ?>" class="btn btn-primary btn-sm px-2.5 py-1 shadow-sm fw-semibold d-inline-flex align-items-center" style="font-size: 0.82rem; height: 34px;">
+                            <i class="bx bx-log-in me-1"></i> <span class="d-none d-sm-inline">เข้าสู่ระบบสำหรับบุคลากร</span><span class="d-inline d-sm-none">เข้าสู่ระบบ</span>
+                        </a>
+                    <?php endif; ?>
+
+                    <!-- Mobile Menu Hamburger Button (Trigger Offcanvas on < 1200px) -->
+                    <button class="btn btn-light btn-sm d-xl-none border d-inline-flex align-items-center justify-content-center ms-1 p-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNavbarOffcanvas" aria-controls="mobileNavbarOffcanvas" title="เปิดเมนูนำทาง" style="width: 34px; height: 34px;">
+                        <i class="bx bx-menu fs-4 align-middle text-dark"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile Offcanvas Menu (Clean Modern Drawer) -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileNavbarOffcanvas" aria-labelledby="mobileNavbarOffcanvasLabel" style="width: 300px;">
+            <div class="offcanvas-header border-bottom py-3" style="background: #f8fafc;">
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-primary p-2 rounded-3 me-2 shadow-sm">
+                        <i class="bx bxs-institution fs-5 text-white"></i>
+                    </span>
+                    <div>
+                        <h6 class="offcanvas-title fw-bold text-dark mb-0" id="mobileNavbarOffcanvasLabel">ระบบงานสารบรรณ สกจ.</h6>
+                        <small class="text-secondary" style="font-size: 0.72rem;">โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ)</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-3 d-flex flex-column justify-content-between">
+                <ul class="nav nav-pills flex-column gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link <?= empty($currentType) ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="<?= base_url('/') ?>">
+                            <i class="bx bx-file-find me-2 text-primary fs-5 align-middle"></i> ติดตามหนังสือราชการ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $currentType === 'in' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('in')">
+                            <i class="bx bx-log-in-circle me-2 text-primary fs-5 align-middle"></i> หนังสือรับ (ภายนอก)
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $currentType === 'out' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('out')">
+                            <i class="bx bx-log-out-circle me-2 text-success fs-5 align-middle"></i> หนังสือส่ง (ภายนอก)
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $currentType === 'internal' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('internal')">
+                            <i class="bx bx-message-detail me-2 text-info fs-5 align-middle"></i> บันทึกข้อความ (ภายใน)
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $currentType === 'order' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('order')">
+                            <i class="bx bx-award me-2 text-warning fs-5 align-middle"></i> คำสั่งโรงเรียน
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $currentType === 'travel' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('travel')">
+                            <i class="bx bx-briefcase-alt-2 me-2 text-info fs-5 align-middle"></i> ขออนุมัติไปราชการ
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="pt-3 border-top mt-3">
+                    <?php if ($isLoggedIn): ?>
+                        <div class="d-flex align-items-center mb-3 p-2 bg-light rounded">
+                            <div class="avatar avatar-online avatar-sm me-2">
                                 <span class="avatar-initial rounded-circle bg-primary text-white fw-bold">
                                     <?= mb_substr(session()->get('first_name') ?? 'U', 0, 1) ?>
                                 </span>
                             </div>
+                            <div class="text-truncate">
+                                <div class="fw-bold text-dark small text-truncate"><?= esc($userFullName) ?></div>
+                                <span class="badge bg-success text-white" style="font-size: 0.68rem;">เข้าสู่ระบบแล้ว</span>
+                            </div>
                         </div>
-                        <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-primary btn-sm px-3 shadow-sm fw-semibold">
+                        <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-primary w-100 fw-bold shadow-sm">
                             <i class="bx bx-grid-alt me-1"></i> แดชบอร์ดงานของฉัน
                         </a>
                     <?php else: ?>
-                        <a href="<?= base_url('login') ?>" class="btn btn-primary btn-sm px-3 shadow-sm fw-semibold">
+                        <a href="<?= base_url('login') ?>" class="btn btn-primary w-100 fw-bold shadow-sm">
                             <i class="bx bx-log-in me-1"></i> เข้าสู่ระบบสำหรับบุคลากร
                         </a>
                     <?php endif; ?>
                 </div>
             </div>
-        </nav>
+        </div>
 
         <!-- Main Body -->
         <div class="container-xxl">
 
-            <!-- Hero Banner (High-Contrast Typography) -->
-            <div class="card hero-sneat-card mb-4 border-0">
-                <div class="card-body p-4 p-md-5">
+            <!-- Hero Banner (Compact & Streamlined) -->
+            <div class="card hero-sneat-card mb-2 mb-md-3 border-0">
+                <div class="card-body p-2.5 p-sm-3 p-md-3">
                     <div class="row align-items-center">
                         <div class="col-lg-8">
                             <!-- High Contrast Top Badge -->
-                            <div class="d-inline-flex align-items-center px-3 py-1 rounded-pill mb-3" style="background: rgba(0, 0, 0, 0.45); border: 1.5px solid rgba(255, 255, 255, 0.6);">
-                                <i class="bx bx-check-shield text-warning me-1"></i>
-                                <span class="small fw-bold text-white">Public Portal (ระบบตรวจสอบความคืบหน้าสำหรับประชาชน & ผู้รับบริการ)</span>
+                            <div class="d-inline-flex align-items-center px-2 py-0.5 rounded-pill mb-1.5" style="background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.4); max-width: 100%;">
+                                <i class="bx bx-check-shield text-warning me-1 flex-shrink-0" style="font-size: 0.85rem;"></i>
+                                <span class="fw-bold text-white text-truncate" style="font-size: 0.72rem;">Public Portal &bull; ติดตามสถานะสำหรับประชาชน</span>
                             </div>
-                            <h2 class="fw-bolder text-white mb-2" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">ติดตามสถานะหนังสือราชการและขั้นตอนการดำเนินงาน</h2>
-                            <p class="text-white mb-4 fw-medium" style="max-width: 620px; font-size: 1rem; text-shadow: 0 1px 3px rgba(0,0,0,0.3); opacity: 0.95;">
-                                ระบบเปิดให้ประชาชนและบุคลากรติดตามการขับเคลื่อนเอกสารได้อย่างโปร่งใส สามารถตรวจสอบได้ทันทีว่าเรื่องอยู่ที่ขั้นตอนใด ใครกำลังพิจารณา และเสร็จสิ้นแล้วหรือไม่
+                            <h2 class="fw-bolder text-white mb-1" style="font-size: 1.15rem; line-height: 1.35; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">ติดตามสถานะหนังสือราชการและขั้นตอนการดำเนินงาน</h2>
+                            <p class="text-white mb-2 fw-normal small opacity-90" style="font-size: 0.80rem; line-height: 1.35; max-width: 600px; text-shadow: 0 1px 2px rgba(0,0,0,0.25);">
+                                ตรวจสอบความคืบหน้าเอกสารได้อย่างโปร่งใส รู้ทันทีว่าเรื่องอยู่ขั้นตอนใดและใครกำลังพิจารณา
                             </p>
                             <!-- Feature Pills with Pure White Background and Dark Text -->
-                            <div class="d-flex flex-wrap gap-2">
-                                <span class="badge px-3 py-2 rounded-pill shadow-sm" style="background: #ffffff; color: #1e293b; font-weight: 700; border: 1.5px solid #cbd5e1; font-size: 0.82rem;">
-                                    <i class="bx bx-git-commit me-1 text-primary fs-6 align-middle"></i> เช็กขั้นตอนแบบเรียลไทม์
+                            <div class="d-flex flex-wrap gap-1.5 align-items-center">
+                                <span class="badge px-2 py-1 rounded-pill shadow-xs" style="background: #ffffff; color: #1e293b; font-weight: 700; border: 1px solid #cbd5e1; font-size: 0.70rem;">
+                                    <i class="bx bx-git-commit me-1 text-primary align-middle"></i> เรียลไทม์
                                 </span>
-                                <span class="badge px-3 py-2 rounded-pill shadow-sm" style="background: #ffffff; color: #1e293b; font-weight: 700; border: 1.5px solid #cbd5e1; font-size: 0.82rem;">
-                                    <i class="bx bx-lock-alt me-1 text-warning fs-6 align-middle"></i> สิทธิ์ดูอย่างเดียว (Read-only) ปลอดภัย
+                                <span class="badge px-2 py-1 rounded-pill shadow-xs" style="background: #ffffff; color: #1e293b; font-weight: 700; border: 1px solid #cbd5e1; font-size: 0.70rem;">
+                                    <i class="bx bx-lock-alt me-1 text-warning align-middle"></i> โหมดอ่านอย่างเดียว
                                 </span>
                             </div>
                         </div>
                         <div class="col-lg-4 text-center d-none d-lg-block">
-                            <img src="<?= base_url('assets/img/illustrations/man-with-laptop.png') ?>" alt="Tracking Illustration" class="img-fluid" style="max-height: 195px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));" />
+                            <img src="<?= base_url('assets/img/illustrations/man-with-laptop.png') ?>" alt="Tracking Illustration" class="img-fluid" style="max-height: 100px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));" />
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Search & Filter Card -->
-            <div class="card glass-card mb-4">
-                <div class="card-body p-4">
-                    <form action="<?= base_url('/') ?>" method="GET" class="row g-3 align-items-end">
-                        <div class="col-lg-5 col-md-6">
+            <!-- Search & Filter Card (Responsive Grid on Mobile) -->
+            <div class="card glass-card mb-3 mb-md-4">
+                <div class="card-body p-3 p-sm-4">
+                    <form action="<?= base_url('/') ?>" method="GET" class="row g-2 g-sm-3 align-items-end">
+                        <div class="col-12 col-md-6 col-lg-5">
                             <label class="form-label text-dark small fw-bold">
                                 <i class="bx bx-search-alt me-1 text-primary"></i> ค้นหาเอกสาร
                             </label>
                             <div class="input-group input-group-merge">
                                 <span class="input-group-text bg-white border-end-0"><i class="bx bx-search text-primary"></i></span>
-                                <input type="text" id="searchInput" name="search" class="form-control border-start-0 text-dark fw-medium" placeholder="พิมพ์เลขที่หนังสือ, เลขทะเบียน รร., หรือชื่อเรื่อง..." value="<?= esc($search) ?>" />
+                                <input type="text" id="searchInput" name="search" class="form-control border-start-0 text-dark fw-medium" placeholder="พิมพ์เลขที่หนังสือ, เลขทะเบียน, หรือชื่อเรื่อง..." value="<?= esc($search) ?>" />
                             </div>
                         </div>
-                        <div class="col-lg-3 col-md-3">
+                        <div class="col-6 col-md-3 col-lg-3">
                             <label class="form-label text-dark small fw-bold">
                                 <i class="bx bx-folder me-1 text-primary"></i> ประเภทหนังสือ
                             </label>
-                            <select name="type" id="typeSelect" class="form-select text-dark fw-medium">
-                                <option value="">-- ทั้งหมดทุกประเภท --</option>
+                            <select name="type" id="typeSelect" class="form-select text-dark fw-medium" style="font-size: 0.85rem;">
+                                <option value="">-- ทุกประเภท --</option>
                                 <option value="in" <?= $currentType === 'in' ? 'selected' : '' ?>>หนังสือรับ (ภายนอก)</option>
                                 <option value="out" <?= $currentType === 'out' ? 'selected' : '' ?>>หนังสือส่ง (ภายนอก)</option>
                                 <option value="internal" <?= $currentType === 'internal' ? 'selected' : '' ?>>บันทึกข้อความ (ภายใน)</option>
                                 <option value="order" <?= $currentType === 'order' ? 'selected' : '' ?>>คำสั่งโรงเรียน</option>
-                                <option value="travel" <?= $currentType === 'travel' ? 'selected' : '' ?>>ขออนุมัติไปราชการ (Travel)</option>
+                                <option value="travel" <?= $currentType === 'travel' ? 'selected' : '' ?>>ขออนุมัติไปราชการ</option>
                                 <option value="circular" <?= $currentType === 'circular' ? 'selected' : '' ?>>หนังสือเวียน</option>
                             </select>
                         </div>
-                        <div class="col-lg-2 col-md-3">
+                        <div class="col-6 col-md-3 col-lg-2">
                             <label class="form-label text-dark small fw-bold">
                                 <i class="bx bx-flag me-1 text-primary"></i> สถานะเอกสาร
                             </label>
-                            <select name="status" id="statusSelect" class="form-select text-dark fw-medium">
+                            <select name="status" id="statusSelect" class="form-select text-dark fw-medium" style="font-size: 0.85rem;">
                                 <option value="">-- ทุกสถานะ --</option>
                                 <option value="routing" <?= $currentStatus === 'routing' ? 'selected' : '' ?>>อยู่ระหว่างดำเนินเรื่อง</option>
                                 <option value="completed" <?= $currentStatus === 'completed' ? 'selected' : '' ?>>เสร็จสิ้น/อนุมัติแล้ว</option>
                                 <option value="returned" <?= $currentStatus === 'returned' ? 'selected' : '' ?>>ส่งคืนแก้ไข</option>
                             </select>
                         </div>
-                        <div class="col-lg-2 col-md-12 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <div class="col-12 col-lg-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">
                                 <i class="bx bx-search me-1"></i> ค้นหา
                             </button>
                             <?php if (!empty($search) || !empty($currentType) || !empty($currentStatus)): ?>
-                                <a href="<?= base_url('/') ?>" class="btn btn-outline-secondary fw-semibold" title="ล้างค่าการค้นหา">
+                                <a href="<?= base_url('/') ?>" class="btn btn-outline-secondary fw-semibold d-flex align-items-center justify-content-center px-3" title="ล้างค่าการค้นหา">
                                     <i class="bx bx-reset"></i>
                                 </a>
                             <?php endif; ?>
@@ -532,128 +854,146 @@
                 </div>
             </div>
 
-            <!-- High Contrast 4 Statistics Cards -->
-            <div class="row g-3 mb-4">
+            <!-- High Contrast 4 Statistics Cards (Ultra-Compact Modern Grid) -->
+            <div class="row g-2 mb-3 mb-md-4">
                 <!-- ทั้งหมด -->
-                <div class="col-sm-6 col-lg-3">
-                    <div class="card stat-sneat-card h-100" onclick="window.location.href='<?= base_url('/') ?>'">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div class="avatar flex-shrink-0">
-                                    <span class="avatar-initial rounded bg-primary text-white"><i class="bx bx-folder-open fs-3"></i></span>
-                                </div>
-                                <span class="badge px-2 py-1 rounded-pill" style="background: #eef2ff; color: #3730a3; font-weight: 700; border: 1px solid #c7d2fe;">ทั้งหมด</span>
+                <div class="col-6 col-lg-3">
+                    <div class="card stat-sneat-card h-100" onclick="window.location.href='<?= base_url('/') ?>'" title="ดูทะเบียนหนังสือทั้งหมด">
+                        <div class="card-body p-2 p-sm-2.5 d-flex align-items-center">
+                            <div class="avatar avatar-sm me-2 me-sm-2.5 flex-shrink-0" style="width: 36px; height: 36px;">
+                                <span class="avatar-initial rounded-3 bg-primary text-white shadow-sm">
+                                    <i class="bx bx-folder-open fs-5"></i>
+                                </span>
                             </div>
-                            <span class="d-block mb-1 text-dark fw-bold small">ทะเบียนหนังสือรวม</span>
-                            <h3 class="card-title mb-0 fw-bolder" style="color: #0f172a;"><?= number_format($totalCount) ?> <small class="fs-6 text-secondary fw-normal">เรื่อง</small></h3>
+                            <div class="min-w-0 flex-grow-1">
+                                <span class="d-block text-secondary fw-bold text-truncate" style="font-size: 0.74rem; line-height: 1.2;">ทะเบียนรวม</span>
+                                <div class="d-flex align-items-baseline gap-1 mt-0.5">
+                                    <span class="fw-bolder text-dark lh-1" style="font-size: 1.25rem !important;"><?= number_format($totalCount) ?></span>
+                                    <span class="text-secondary fw-normal" style="font-size: 0.70rem;">เรื่อง</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- กำลังพิจารณา (High Contrast: Dark Amber on Soft Yellow) -->
-                <div class="col-sm-6 col-lg-3">
-                    <div class="card stat-sneat-card h-100" onclick="window.location.href='<?= base_url('?status=routing') ?>'">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div class="avatar flex-shrink-0">
-                                    <span class="avatar-initial rounded" style="background: #b45309; color: #ffffff;"><i class="bx bx-time-five fs-3"></i></span>
-                                </div>
-                                <span class="badge px-2 py-1 rounded-pill" style="background: #fef3c7; color: #92400e; font-weight: 700; border: 1px solid #fde68a;">กำลังเดินเรื่อง</span>
+                <!-- กำลังพิจารณา -->
+                <div class="col-6 col-lg-3">
+                    <div class="card stat-sneat-card h-100" onclick="window.location.href='<?= base_url('?status=routing') ?>'" title="ดูหนังสือที่อยู่ระหว่างพิจารณา">
+                        <div class="card-body p-2 p-sm-2.5 d-flex align-items-center">
+                            <div class="avatar avatar-sm me-2 me-sm-2.5 flex-shrink-0" style="width: 36px; height: 36px;">
+                                <span class="avatar-initial rounded-3 text-white shadow-sm" style="background: #d97706;">
+                                    <i class="bx bx-time-five fs-5"></i>
+                                </span>
                             </div>
-                            <span class="d-block mb-1 text-dark fw-bold small">อยู่ระหว่างเสนอพิจารณา</span>
-                            <h3 class="card-title mb-0 fw-bolder" style="color: #b45309;"><?= number_format($routingCount) ?> <small class="fs-6 text-secondary fw-normal">เรื่อง</small></h3>
+                            <div class="min-w-0 flex-grow-1">
+                                <span class="d-block text-secondary fw-bold text-truncate" style="font-size: 0.74rem; line-height: 1.2;">กำลังพิจารณา</span>
+                                <div class="d-flex align-items-baseline gap-1 mt-0.5">
+                                    <span class="fw-bolder lh-1" style="color: #b45309; font-size: 1.25rem !important;"><?= number_format($routingCount) ?></span>
+                                    <span class="text-secondary fw-normal" style="font-size: 0.70rem;">เรื่อง</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- เสร็จสิ้น (High Contrast: Dark Forest Green) -->
-                <div class="col-sm-6 col-lg-3">
-                    <div class="card stat-sneat-card h-100" onclick="window.location.href='<?= base_url('?status=completed') ?>'">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div class="avatar flex-shrink-0">
-                                    <span class="avatar-initial rounded bg-success text-white"><i class="bx bx-check-circle fs-3"></i></span>
-                                </div>
-                                <span class="badge px-2 py-1 rounded-pill" style="background: #dcfce7; color: #166534; font-weight: 700; border: 1px solid #bbf7d0;">อนุมัติแล้ว</span>
+                <!-- เสร็จสิ้น -->
+                <div class="col-6 col-lg-3">
+                    <div class="card stat-sneat-card h-100" onclick="window.location.href='<?= base_url('?status=completed') ?>'" title="ดูหนังสือที่เสร็จสิ้นสมบูรณ์">
+                        <div class="card-body p-2 p-sm-2.5 d-flex align-items-center">
+                            <div class="avatar avatar-sm me-2 me-sm-2.5 flex-shrink-0" style="width: 36px; height: 36px;">
+                                <span class="avatar-initial rounded-3 bg-success text-white shadow-sm">
+                                    <i class="bx bx-check-circle fs-5"></i>
+                                </span>
                             </div>
-                            <span class="d-block mb-1 text-dark fw-bold small">ดำเนินการเสร็จสิ้น</span>
-                            <h3 class="card-title mb-0 fw-bolder" style="color: #15803d;"><?= number_format($completedCount) ?> <small class="fs-6 text-secondary fw-normal">เรื่อง</small></h3>
+                            <div class="min-w-0 flex-grow-1">
+                                <span class="d-block text-secondary fw-bold text-truncate" style="font-size: 0.74rem; line-height: 1.2;">เสร็จสิ้น</span>
+                                <div class="d-flex align-items-baseline gap-1 mt-0.5">
+                                    <span class="fw-bolder lh-1" style="color: #15803d; font-size: 1.25rem !important;"><?= number_format($completedCount) ?></span>
+                                    <span class="text-secondary fw-normal" style="font-size: 0.70rem;">เรื่อง</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ส่งคืน (High Contrast: Deep Crimson Red) -->
-                <div class="col-sm-6 col-lg-3">
-                    <div class="card stat-sneat-card h-100" onclick="window.location.href='<?= base_url('?status=returned') ?>'">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div class="avatar flex-shrink-0">
-                                    <span class="avatar-initial rounded bg-danger text-white"><i class="bx bx-revision fs-3"></i></span>
-                                </div>
-                                <span class="badge px-2 py-1 rounded-pill" style="background: #fee2e2; color: #991b1b; font-weight: 700; border: 1px solid #fecaca;">ส่งคืน</span>
+                <!-- ส่งคืน -->
+                <div class="col-6 col-lg-3">
+                    <div class="card stat-sneat-card h-100" onclick="window.location.href='<?= base_url('?status=returned') ?>'" title="ดูหนังสือที่ส่งคืนให้แก้ไข">
+                        <div class="card-body p-2 p-sm-2.5 d-flex align-items-center">
+                            <div class="avatar avatar-sm me-2 me-sm-2.5 flex-shrink-0" style="width: 36px; height: 36px;">
+                                <span class="avatar-initial rounded-3 bg-danger text-white shadow-sm">
+                                    <i class="bx bx-revision fs-5"></i>
+                                </span>
                             </div>
-                            <span class="d-block mb-1 text-dark fw-bold small">ส่งคืนให้แก้ไข</span>
-                            <h3 class="card-title mb-0 fw-bolder" style="color: #b91c1c;"><?= number_format($returnedCount) ?> <small class="fs-6 text-secondary fw-normal">เรื่อง</small></h3>
+                            <div class="min-w-0 flex-grow-1">
+                                <span class="d-block text-secondary fw-bold text-truncate" style="font-size: 0.74rem; line-height: 1.2;">ส่งคืนแก้ไข</span>
+                                <div class="d-flex align-items-baseline gap-1 mt-0.5">
+                                    <span class="fw-bolder lh-1" style="color: #b91c1c; font-size: 1.25rem !important;"><?= number_format($returnedCount) ?></span>
+                                    <span class="text-secondary fw-normal" style="font-size: 0.70rem;">เรื่อง</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Readonly Policy Alert Banner (High Contrast Warm Yellow) -->
-            <div class="alert d-flex align-items-center justify-content-between mb-4 shadow-sm" role="alert" style="background: #fffbe6; border: 1.5px solid #ffe58f; color: #614700; border-radius: 0.75rem;">
+            <div class="alert d-flex align-items-center justify-content-between mb-3 mb-md-4 shadow-sm py-2 px-3" role="alert" style="background: #fffbe6; border: 1.5px solid #ffe58f; color: #614700; border-radius: 0.75rem;">
                 <div class="d-flex align-items-center">
-                    <i class="bx bxs-info-circle fs-3 me-2" style="color: #d48806;"></i>
-                    <div class="small fw-medium">
-                        <strong class="fw-bold" style="color: #382400;">คำชี้แจงการใช้งานสำหรับบุคคลทั่วไป:</strong> หน้านี้เปิดให้ตรวจสอบความคืบหน้าของเอกสาร (Read-only) โดยบุคคลทั่วไปไม่สามารถเซ็นเกษียนหรือแก้ไขข้อมูลได้ หากท่านเป็นเจ้าหน้าที่หรือผู้บริหาร <a href="<?= base_url('login') ?>" class="alert-link text-decoration-underline fw-bold" style="color: #002c8a;">คลิกที่นี่เพื่อเข้าสู่ระบบ</a>
+                    <i class="bx bxs-info-circle fs-3 me-2 flex-shrink-0" style="color: #d48806;"></i>
+                    <div class="small fw-medium" style="font-size: 0.8rem;">
+                        <strong class="fw-bold" style="color: #382400;">โหมดตรวจสอบสาธารณะ (Read-only):</strong> บุคคลทั่วไปสามารถติดตามความคืบหน้าได้ แต่ไม่สามารถลงนามได้ เจ้าหน้าที่/ผู้บริหาร <a href="<?= base_url('login') ?>" class="alert-link text-decoration-underline fw-bold" style="color: #002c8a;">เข้าสู่ระบบที่นี่</a>
                     </div>
                 </div>
-                <span class="badge px-3 py-2 fw-bold d-none d-md-inline-block shadow-sm" style="background: #faad14; color: #000000; font-size: 0.75rem;">
+                <span class="badge px-2.5 py-1.5 fw-bold d-none d-md-inline-block shadow-sm flex-shrink-0 ms-2" style="background: #faad14; color: #000000; font-size: 0.72rem;">
                     <i class="bx bx-lock-alt me-1"></i> โหมดอ่านอย่างเดียว
                 </span>
             </div>
 
-            <!-- Nav Pills Tabs (High Contrast) -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-                <ul class="nav nav-pills flex-column flex-sm-row gap-2">
-                    <li class="nav-item">
-                        <a class="nav-link custom-nav-pill <?= empty($currentType) ? 'active' : '' ?>" href="<?= base_url('/') ?>">
-                            <i class="bx bx-grid-alt me-1"></i> ทั้งหมด
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link custom-nav-pill <?= $currentType === 'in' ? 'active' : '' ?>" href="<?= base_url('?type=in') ?>">
-                            <i class="bx bx-log-in-circle me-1"></i> หนังสือรับ
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link custom-nav-pill <?= $currentType === 'out' ? 'active' : '' ?>" href="<?= base_url('?type=out') ?>">
-                            <i class="bx bx-log-out-circle me-1"></i> หนังสือส่ง
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link custom-nav-pill <?= $currentType === 'internal' ? 'active' : '' ?>" href="<?= base_url('?type=internal') ?>">
-                            <i class="bx bx-message-detail me-1"></i> บันทึกข้อความ
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link custom-nav-pill <?= $currentType === 'order' ? 'active' : '' ?>" href="<?= base_url('?type=order') ?>">
-                            <i class="bx bx-award me-1"></i> คำสั่งโรงเรียน
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link custom-nav-pill <?= $currentType === 'travel' ? 'active' : '' ?>" href="<?= base_url('?type=travel') ?>">
-                            <i class="bx bx-briefcase-alt-2 me-1"></i> ขออนุมัติไปราชการ
-                        </a>
-                    </li>
-                </ul>
+            <!-- Nav Pills Tabs (Horizontal Touch Scroll on Mobile) -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2">
+                <div class="w-100 overflow-hidden">
+                    <ul class="nav nav-pills flex-nowrap overflow-x-auto pb-1 gap-2 scrollbar-none" style="-webkit-overflow-scrolling: touch;">
+                        <li class="nav-item flex-shrink-0">
+                            <a class="nav-link custom-nav-pill <?= empty($currentType) ? 'active' : '' ?>" href="<?= base_url('/') ?>">
+                                <i class="bx bx-grid-alt me-1"></i> ทั้งหมด
+                            </a>
+                        </li>
+                        <li class="nav-item flex-shrink-0">
+                            <a class="nav-link custom-nav-pill <?= $currentType === 'in' ? 'active' : '' ?>" href="<?= base_url('?type=in') ?>">
+                                <i class="bx bx-log-in-circle me-1"></i> หนังสือรับ
+                            </a>
+                        </li>
+                        <li class="nav-item flex-shrink-0">
+                            <a class="nav-link custom-nav-pill <?= $currentType === 'out' ? 'active' : '' ?>" href="<?= base_url('?type=out') ?>">
+                                <i class="bx bx-log-out-circle me-1"></i> หนังสือส่ง
+                            </a>
+                        </li>
+                        <li class="nav-item flex-shrink-0">
+                            <a class="nav-link custom-nav-pill <?= $currentType === 'internal' ? 'active' : '' ?>" href="<?= base_url('?type=internal') ?>">
+                                <i class="bx bx-message-detail me-1"></i> บันทึกข้อความ
+                            </a>
+                        </li>
+                        <li class="nav-item flex-shrink-0">
+                            <a class="nav-link custom-nav-pill <?= $currentType === 'order' ? 'active' : '' ?>" href="<?= base_url('?type=order') ?>">
+                                <i class="bx bx-award me-1"></i> คำสั่งโรงเรียน
+                            </a>
+                        </li>
+                        <li class="nav-item flex-shrink-0">
+                            <a class="nav-link custom-nav-pill <?= $currentType === 'travel' ? 'active' : '' ?>" href="<?= base_url('?type=travel') ?>">
+                                <i class="bx bx-briefcase-alt-2 me-1"></i> ขออนุมัติไปราชการ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
-                <div class="text-dark fw-bold small mt-2 mt-sm-0 bg-white px-3 py-2 rounded border">
-                    แสดงรายการหนังสือ <span class="badge bg-primary px-2 py-1"><?= count($documents) ?></span> รายการ
+                <div class="text-dark fw-bold small flex-shrink-0 bg-white px-2.5 py-1.5 rounded border shadow-xs d-flex align-items-center align-self-end align-self-sm-auto" style="font-size: 0.78rem;">
+                    แสดง <span class="badge bg-primary px-2 py-0.5 mx-1"><?= count($documents) ?></span> เรื่อง
                 </div>
             </div>
 
-            <!-- Document Table Card (High Contrast) -->
-            <div class="card glass-card mb-4 border-0">
+            <!-- Desktop Document Table Card (d-none d-md-block) -->
+            <div class="card glass-card mb-4 border-0 d-none d-md-block">
                 <div class="table-responsive text-nowrap">
                     <table class="table table-hover align-middle mb-0" id="docsTable">
                         <thead style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
@@ -767,13 +1107,106 @@
                 </div>
             </div>
 
+            <!-- Mobile Document Cards List (Dedicated Mobile-First UI: d-block d-md-none) -->
+            <div class="d-block d-md-none mb-4">
+                <?php if (empty($documents)): ?>
+                    <div class="card glass-card text-center p-4">
+                        <i class="bx bx-folder-open display-4 d-block mb-2 text-primary"></i>
+                        <h5 class="fw-bold text-dark mb-1">ไม่พบรายการหนังสือตามเงื่อนไข</h5>
+                        <p class="text-secondary small mb-3">ยังไม่มีรายการหนังสือในหมวดหมู่นี้ หรือไม่มีเอกสารที่ตรงกับคำค้นหาของท่าน</p>
+                        <a href="<?= base_url('/') ?>" class="btn btn-primary btn-sm px-3 fw-bold">
+                            <i class="bx bx-refresh me-1"></i> ดูรายการหนังสือทั้งหมด
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <div class="d-flex flex-column gap-2.5">
+                        <?php foreach ($documents as $doc): ?>
+                            <?php if (($doc['status'] ?? '') === 'draft') continue; ?>
+                            <div class="card glass-card p-3 doc-mobile-card shadow-xs">
+                                <!-- Top Row: Registration No & Status -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge font-monospace fw-bold" style="background: #e2e8f0; color: #0f172a; border: 1px solid #cbd5e1; font-size: 0.78rem;">
+                                        <?= esc($doc['internal_reg_no'] ?: '-') ?>
+                                    </span>
+                                    <div>
+                                        <?= doc_status_badge($doc['status']) ?>
+                                    </div>
+                                </div>
+
+                                <!-- Doc Number & Badges -->
+                                <div class="d-flex flex-wrap align-items-center gap-1.5 mb-2">
+                                    <span class="fw-bolder text-dark" style="font-size: 0.95rem;"><?= esc($doc['doc_no']) ?></span>
+                                    <?= doc_type_badge($doc['doc_type']) ?>
+                                    <?= urgency_badge($doc['urgency']) ?>
+                                </div>
+
+                                <!-- Title (clickable) -->
+                                <h6 class="fw-bold mb-2 lh-base" style="font-size: 0.92rem;">
+                                    <a href="javascript:void(0)" onclick="openTrackModal(<?= $doc['id'] ?>, '<?= esc($doc['doc_type']) ?>')" class="text-dark text-decoration-none hover-primary">
+                                        <?= esc($doc['title']) ?>
+                                    </a>
+                                </h6>
+
+                                <!-- Sender / Receiver & Date Meta -->
+                                <div class="small text-secondary mb-2 bg-light p-2 rounded" style="font-size: 0.78rem;">
+                                    <div class="text-truncate mb-1">
+                                        <i class="bx bx-user me-1 text-primary"></i>จาก: <strong class="text-dark"><?= esc($doc['from_org']) ?></strong>
+                                    </div>
+                                    <div class="text-truncate mb-1">
+                                        <i class="bx bx-right-arrow-alt me-1 text-success"></i>ถึง: <strong class="text-dark"><?= esc($doc['to_org']) ?></strong>
+                                    </div>
+                                    <div>
+                                        <i class="bx bx-calendar me-1 text-primary"></i>ลงวันที่: <strong class="text-dark"><?= thai_date($doc['doc_date'], 'short') ?></strong>
+                                    </div>
+                                </div>
+
+                                <!-- Workflow Step Indicator -->
+                                <div class="mb-3">
+                                    <?php if ($doc['status'] === 'completed'): ?>
+                                        <div class="small fw-bold px-2 py-1 rounded" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-size: 0.78rem;">
+                                            <i class="bx bx-check-double me-1 fs-6 align-middle"></i> สิ้นสุดกระบวนการ (อนุมัติแล้ว)
+                                        </div>
+                                    <?php elseif ($doc['status'] === 'returned'): ?>
+                                        <div class="small fw-bold px-2 py-1 rounded" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; font-size: 0.78rem;">
+                                            <i class="bx bx-error-circle me-1 fs-6 align-middle"></i> เอกสารถูกส่งคืนให้แก้ไข
+                                        </div>
+                                    <?php else: ?>
+                                        <?php if (!empty($doc['current_handler'])): ?>
+                                            <div class="small fw-bold px-2 py-1 rounded" style="background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; font-size: 0.78rem;">
+                                                <i class="bx bx-git-commit me-1"></i>
+                                                <strong>ขั้นที่ <?= $doc['current_step'] ?></strong>: รอ <?= esc($doc['current_handler']['position_name']) ?>
+                                                <div class="fw-normal text-dark text-truncate mt-0.5">
+                                                    ผู้พิจารณา: <?= esc(($doc['current_handler']['prefix'] ?? '') . $doc['current_handler']['first_name'] . ' ' . $doc['current_handler']['last_name']) ?>
+                                                </div>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="text-muted small">-</div>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-primary btn-sm flex-grow-1 fw-bold py-2 shadow-sm" onclick="openTrackModal(<?= $doc['id'] ?>, '<?= esc($doc['doc_type']) ?>')">
+                                        <i class="bx bx-git-repo-forked me-1"></i> ดูขั้นตอน
+                                    </button>
+                                    <a href="<?= base_url(($doc['is_travel'] ?? false) ? 'travel/' . $doc['id'] : 'tracking/' . $doc['id']) ?>" class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center px-3" title="เปิดหน้าเต็ม">
+                                        <i class="bx bx-expand-alt"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
         </div>
 
         <!-- Footer -->
         <footer class="footer bg-white border-top py-4 mt-5 glass-card">
             <div class="container-xxl text-center small" style="color: #334155;">
                 <div class="fw-bold">
-                    © <?= date('Y') + 543 ?> <strong>ระบบสารบรรณและเกษียนหนังสืออิเล็กทรอนิกส์ (School e-Saraban)</strong>
+                    © <?= date('Y') + 543 ?> <strong>ระบบงานสารบรรณ สกจ. (e-Saraban SKJ)</strong>
                 </div>
                 <div class="mt-1 fw-medium text-secondary">
                     พัฒนาเพื่อการติดตามงานราชการที่โปร่งใส ตรวจสอบได้ทุกขั้นตอน
@@ -784,23 +1217,24 @@
     </div>
 
     <!-- Quick Workflow Tracker Modal (High Contrast & Extra Wide) -->
+    <!-- Quick Workflow Tracker Modal (Mobile-First Fullscreen & High Contrast) -->
     <div class="modal fade" id="trackModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1200px;">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem; background: #ffffff;">
-                <div class="modal-header border-bottom py-3" style="background: #f8fafc;">
+        <div class="modal-dialog modal-fullscreen-sm-down modal-xl modal-dialog-centered" style="max-width: 1200px;">
+            <div class="modal-content border-0 shadow-lg" style="background: #ffffff;">
+                <div class="modal-header border-bottom py-2.5 px-3 px-sm-4 bg-light">
                     <div class="d-flex align-items-center">
-                        <div class="avatar flex-shrink-0 me-3">
-                            <span class="avatar-initial rounded bg-primary text-white"><i class="bx bx-git-commit fs-3"></i></span>
-                        </div>
-                        <div>
-                            <h5 class="modal-title fw-bold text-dark mb-0">สถานะและเส้นทางเดินหนังสือราชการ</h5>
-                            <small class="text-secondary fw-semibold" id="modalDocSubheader">ระบบติดตามแบบสาธารณะ (Read-only Workflow)</small>
+                        <span class="badge bg-primary p-2 rounded-3 me-2.5 shadow-sm">
+                            <i class="bx bx-git-commit fs-4 text-white"></i>
+                        </span>
+                        <div class="lh-1">
+                            <h5 class="modal-title fw-bold text-dark mb-0" style="font-size: 1rem;">สถานะและเส้นทางเดินหนังสือราชการ</h5>
+                            <small class="text-secondary fw-semibold" id="modalDocSubheader" style="font-size: 0.72rem;">ระบบติดตามแบบสาธารณะ (Workflow Tracking)</small>
                         </div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="modal-body py-4">
+                <div class="modal-body py-3 px-2 px-sm-3 px-md-4">
                     <!-- Loading Spinner -->
                     <div id="modalLoading" class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
@@ -811,50 +1245,55 @@
 
                     <!-- Modal Content Container -->
                     <div id="modalContent" style="display: none;">
-                        <!-- Doc Info Card (High Contrast) -->
-                        <div class="card border p-3 mb-4" style="background: #f8fafc; border: 1.5px solid #cbd5e1 !important; border-radius: 0.75rem;">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
+                        <!-- Doc Info Card (Mobile-First High Contrast) -->
+                        <div class="card border p-2.5 p-sm-3 mb-3" style="background: #f8fafc; border: 1.5px solid #cbd5e1 !important; border-radius: 0.75rem;">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-1.5 mb-2">
+                                <div class="d-flex flex-wrap align-items-center gap-1">
                                     <span id="modalDocType"></span>
                                     <span id="modalUrgency"></span>
-                                    <strong class="fs-5 text-dark ms-1" id="modalDocNo"></strong>
+                                    <strong class="fs-6 text-dark ms-1" id="modalDocNo"></strong>
                                 </div>
                                 <span id="modalDocStatus"></span>
                             </div>
-                            <h5 class="fw-bold text-primary mb-2" id="modalDocTitle"></h5>
-                            <div class="row g-2 small text-dark fw-medium">
-                                <div class="col-sm-6">
-                                    <i class="bx bx-barcode me-1 text-primary"></i> เลขทะเบียน รร.: <strong class="text-dark" id="modalRegNo"></strong>
+                            <h6 class="fw-bold text-primary mb-2" id="modalDocTitle" style="font-size: 0.95rem; line-height: 1.4;"></h6>
+                            <div class="row g-2 small text-dark fw-medium" style="font-size: 0.78rem;">
+                                <div class="col-6 col-sm-6">
+                                    <i class="bx bx-barcode me-1 text-primary"></i> ทะเบียน: <strong class="text-dark" id="modalRegNo"></strong>
                                 </div>
-                                <div class="col-sm-6">
-                                    <i class="bx bx-calendar me-1 text-primary"></i> ลงวันที่: <strong class="text-dark" id="modalDocDate"></strong>
+                                <div class="col-6 col-sm-6">
+                                    <i class="bx bx-calendar me-1 text-primary"></i> วันที่: <strong class="text-dark" id="modalDocDate"></strong>
                                 </div>
-                                <div class="col-sm-6">
+                                <div class="col-6 col-sm-6">
                                     <i class="bx bx-paper-plane me-1 text-primary"></i> จาก: <strong class="text-dark" id="modalFromOrg"></strong>
                                 </div>
-                                <div class="col-sm-6">
+                                <div class="col-6 col-sm-6">
                                     <i class="bx bx-building me-1 text-primary"></i> ถึง: <strong class="text-dark" id="modalToOrg"></strong>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Stepper Visual (Outbound) -->
-                        <div class="mb-4 step-stepper-box" style="border-left: 6px solid #4338ca; border-top: 1.5px solid #cbd5e1; border-right: 1.5px solid #cbd5e1; border-bottom: 1.5px solid #cbd5e1; background: #fafbff;">
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style="border-color: #e2e8f0 !important;">
+                        <!-- Stepper Visual (Outbound: สายเสนอเรื่อง) -->
+                        <div class="mb-3 step-stepper-box" style="border-left: 5px solid #4338ca; border-top: 1.5px solid #cbd5e1; border-right: 1.5px solid #cbd5e1; border-bottom: 1.5px solid #cbd5e1; background: #fafbff;">
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom" style="border-color: #e2e8f0 !important;">
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-primary text-white fw-bold px-2 py-1 shadow-sm" style="font-size: 0.85rem;">
+                                    <span class="badge bg-primary text-white fw-bold px-2 py-1 shadow-sm" style="font-size: 0.76rem;">
                                         <i class="bx bx-right-arrow-alt me-1 fs-6 align-middle"></i> ขาไป ➔
                                     </span>
                                     <div>
-                                        <h6 class="text-dark fw-bolder mb-0" style="font-size: 0.95rem;">
+                                        <h6 class="text-dark fw-bolder mb-0" style="font-size: 0.88rem;">
                                             เส้นทางเดินหนังสือขออนุมัติและเกษียนลงนาม
                                         </h6>
-                                        <small class="text-muted fw-semibold" style="font-size: 0.78rem;">ส่งต่อตามลำดับชั้นบังคับบัญชาเพื่อพิจารณาอนุมัติ</small>
+                                        <small class="text-muted fw-semibold d-none d-sm-block" style="font-size: 0.74rem;">ส่งต่อตามลำดับชั้นบังคับบัญชาเพื่อพิจารณาอนุมัติ</small>
                                     </div>
                                 </div>
-                                <span class="badge bg-white text-primary border border-primary fw-bold px-3 py-1 shadow-xs" style="font-size: 0.76rem;">
-                                    สายเสนอเรื่อง
-                                </span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="badge bg-white text-secondary border d-md-none" style="font-size: 0.68rem;">
+                                        <i class="bx bx-sort-down me-1"></i> ลำดับขั้นตอน
+                                    </span>
+                                    <span class="badge bg-white text-primary border border-primary fw-bold px-2 py-0.5 shadow-xs" style="font-size: 0.72rem;">
+                                        สายเสนอเรื่อง
+                                    </span>
+                                </div>
                             </div>
                             <div class="step-stepper-modal-wrapper">
                                 <div class="step-stepper-modal" id="modalStepper">
@@ -864,44 +1303,49 @@
                         </div>
 
                         <!-- Stepper Visual (Return: ขากลับ ส่งคืนตัวจริง) -->
-                        <div class="mb-4 step-stepper-box" id="modalReturnSection" style="display: none; border-left: 6px solid #16a34a; border-top: 1.5px solid #bbf7d0; border-right: 1.5px solid #bbf7d0; border-bottom: 1.5px solid #bbf7d0; background: #f0fdf4;">
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style="border-color: #bbf7d0 !important;">
+                        <div class="mb-3 step-stepper-box" id="modalReturnSection" style="display: none; border-left: 5px solid #16a34a; border-top: 1.5px solid #bbf7d0; border-right: 1.5px solid #bbf7d0; border-bottom: 1.5px solid #bbf7d0; background: #f0fdf4;">
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom" style="border-color: #bbf7d0 !important;">
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-success text-white fw-bold px-2 py-1 shadow-sm" style="font-size: 0.85rem;">
+                                    <span class="badge bg-success text-white fw-bold px-2 py-1 shadow-sm" style="font-size: 0.76rem;">
                                         <i class="bx bx-left-arrow-alt me-1 fs-6 align-middle"></i> ขากลับ ⬅️
                                     </span>
                                     <div>
-                                        <h6 class="text-dark fw-bolder mb-0" style="font-size: 0.95rem;">
+                                        <h6 class="text-dark fw-bolder mb-0" style="font-size: 0.88rem;">
                                             เส้นทางเดินหนังสือส่งมอบฉบับจริงคืนโรงเรียน
                                         </h6>
-                                        <small class="text-muted fw-semibold" style="font-size: 0.78rem;">ส่งคืนแฟ้มฉบับจริงที่ลงนามแล้วย้อนกลับสู่โรงเรียนผู้ขอ</small>
+                                        <small class="text-muted fw-semibold d-none d-sm-block" style="font-size: 0.74rem;">ส่งคืนแฟ้มฉบับจริงที่ลงนามแล้วย้อนกลับสู่โรงเรียนผู้ขอ</small>
                                     </div>
                                 </div>
-                                <span class="badge bg-white text-success border border-success fw-bold px-3 py-1 shadow-xs" style="font-size: 0.76rem;">
-                                    ส่งมอบเอกสารตัวจริง
-                                </span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="badge bg-white text-secondary border d-md-none" style="font-size: 0.68rem;">
+                                        <i class="bx bx-sort-down me-1"></i> ลำดับขั้นตอน
+                                    </span>
+                                    <span class="badge bg-white text-success border border-success fw-bold px-2 py-0.5 shadow-xs" style="font-size: 0.72rem;">
+                                        ส่งมอบตัวจริง
+                                    </span>
+                                </div>
                             </div>
                             <div class="step-stepper-modal-wrapper">
-                                <div class="step-stepper-modal return-flow flex-row-reverse" id="modalReturnStepper">
+                                <div class="step-stepper-modal return-flow" id="modalReturnStepper">
                                     <!-- Return Steps rendered dynamically -->
                                 </div>
                             </div>
                         </div>
 
                         <!-- Step Details Table -->
-                        <div class="mb-4">
-                            <h6 class="text-dark fw-bold text-uppercase mb-2" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                        <div class="mb-3">
+                            <h6 class="text-dark fw-bold text-uppercase mb-2" style="font-size: 0.82rem; letter-spacing: 0.5px;">
                                 <i class="bx bx-list-check text-primary me-1"></i> รายละเอียดบันทึกการพิจารณาแต่ละขั้นตอน
                             </h6>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-sm">
+                            <div class="table-responsive rounded-3 border" style="background: #ffffff;">
+                                <table class="table table-bordered table-sm mb-0">
                                     <thead style="background: #f1f5f9;">
-                                        <tr class="small text-dark fw-bold">
-                                            <th class="text-center" style="width: 70px;">สายงาน</th>
-                                            <th class="text-center" style="width: 50px;">ขั้นที่</th>
+                                        <tr class="small text-dark fw-bold" style="font-size: 0.76rem;">
+                                            <th class="text-center" style="width: 65px;">สายงาน</th>
+                                            <th class="text-center" style="width: 45px;">ขั้น</th>
                                             <th>ผู้พิจารณา / ตำแหน่ง</th>
-                                            <th style="width: 140px;">สถานะ</th>
-                                            <th style="width: 150px;">วันที่ดำเนินการ</th>
+                                            <th style="width: 120px;">สถานะ</th>
+                                            <th style="width: 130px;">วัน-เวลา</th>
                                             <th>บันทึก / ข้อคิดเห็น</th>
                                         </tr>
                                     </thead>
@@ -914,10 +1358,10 @@
 
                         <!-- System Logs -->
                         <div>
-                            <h6 class="text-dark fw-bold text-uppercase mb-2" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                            <h6 class="text-dark fw-bold text-uppercase mb-2" style="font-size: 0.82rem; letter-spacing: 0.5px;">
                                 <i class="bx bx-history text-primary me-1"></i> ประวัติความเคลื่อนไหวของเอกสาร (History Logs)
                             </h6>
-                            <div class="p-3 rounded" style="background: #f8fafc; border: 1.5px solid #cbd5e1; max-height: 150px; overflow-y: auto;">
+                            <div class="p-2.5 p-sm-3 rounded-3" style="background: #f8fafc; border: 1.5px solid #cbd5e1; max-height: 140px; overflow-y: auto;">
                                 <ul class="list-unstyled mb-0 small text-dark" id="modalLogList">
                                     <!-- Logs rendered dynamically -->
                                 </ul>
@@ -926,15 +1370,17 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-top py-2 bg-light d-flex justify-content-between">
-                    <div class="small fw-bold text-dark">
-                        <i class="bx bx-lock-alt me-1 text-warning fs-6 align-middle"></i> สิทธิ์ดูอย่างเดียว หากต้องการลงนาม กรุณาเข้าสู่ระบบ
+                <div class="modal-footer border-top py-2 px-3 px-sm-4 bg-light d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2">
+                    <div class="small fw-semibold text-secondary text-center text-sm-start" style="font-size: 0.76rem;">
+                        <i class="bx bx-lock-alt me-1 text-warning align-middle"></i> สิทธิ์ดูอย่างเดียว หากต้องการลงนาม กรุณาเข้าสู่ระบบ
                     </div>
-                    <div class="d-flex gap-2">
-                        <a id="modalDetailLink" href="#" class="btn btn-outline-primary btn-sm fw-bold">
+                    <div class="d-flex gap-2 justify-content-end w-100 w-sm-auto">
+                        <a id="modalDetailLink" href="#" class="btn btn-outline-primary btn-sm fw-bold flex-grow-1 flex-sm-grow-0 d-inline-flex align-items-center justify-content-center" style="height: 36px;">
                             <i class="bx bx-file me-1"></i> เปิดดูหน้าเต็ม
                         </a>
-                        <button type="button" class="btn btn-secondary btn-sm fw-bold" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                        <button type="button" class="btn btn-secondary btn-sm fw-bold flex-grow-1 flex-sm-grow-0 d-inline-flex align-items-center justify-content-center" data-bs-dismiss="modal" style="height: 36px;">
+                            <i class="bx bx-x me-1"></i> ปิดหน้าต่าง
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1028,15 +1474,17 @@
                             <div class="step-bubble-modal ${bubbleClass}">
                                 ${iconHtml}
                             </div>
-                            <div class="step-title-text mb-1">${r.step_order}. ${r.position_name}</div>
-                            <div class="mb-1">
-                                <span class="badge ${statusBadge} fw-bold shadow-xs px-2 py-0.5" style="font-size: 0.72rem;">${statusText}</span>
-                            </div>
-                            ${r.user_name && r.user_name !== '-' ? `
-                                <div class="step-user-badge mt-1" title="${r.user_name}">
-                                    <i class="bx bx-user me-1 text-primary"></i>${r.user_name}
+                            <div class="step-info-col">
+                                <div class="step-title-text mb-1">${r.step_order}. ${r.position_name}</div>
+                                <div class="mb-1">
+                                    <span class="badge ${statusBadge} fw-bold shadow-xs px-2 py-0.5" style="font-size: 0.72rem;">${statusText}</span>
                                 </div>
-                            ` : `<div class="text-muted small mt-1" style="font-size: 0.7rem;">-</div>`}
+                                ${r.user_name && r.user_name !== '-' ? `
+                                    <div class="step-user-badge mt-1" title="${r.user_name}">
+                                        <i class="bx bx-user me-1 text-primary"></i>${r.user_name}
+                                    </div>
+                                ` : `<div class="text-muted small mt-1" style="font-size: 0.7rem;">-</div>`}
+                            </div>
                         `;
                         stepper.appendChild(stepCol);
                     });
@@ -1072,15 +1520,17 @@
                                 <div class="step-bubble-modal ${bubbleClass}">
                                     ${iconHtml}
                                 </div>
-                                <div class="step-title-text mb-1" style="color: #14532d !important;">${r.position_name}</div>
-                                <div class="mb-1">
-                                    <span class="badge ${statusBadge} fw-bold shadow-xs px-2 py-0.5" style="font-size: 0.72rem;">${statusText}</span>
-                                </div>
-                                ${r.user_name && r.user_name !== '-' ? `
-                                    <div class="step-user-badge mt-1 border-success border-opacity-50" title="${r.user_name}">
-                                        <i class="bx bx-user-check me-1 text-success"></i>${r.user_name}
+                                <div class="step-info-col">
+                                    <div class="step-title-text mb-1" style="color: #14532d !important;">${r.position_name}</div>
+                                    <div class="mb-1">
+                                        <span class="badge ${statusBadge} fw-bold shadow-xs px-2 py-0.5" style="font-size: 0.72rem;">${statusText}</span>
                                     </div>
-                                ` : `<div class="text-muted small mt-1" style="font-size: 0.7rem;">-</div>`}
+                                    ${r.user_name && r.user_name !== '-' ? `
+                                        <div class="step-user-badge mt-1 border-success border-opacity-50" title="${r.user_name}">
+                                            <i class="bx bx-user-check me-1 text-success"></i>${r.user_name}
+                                        </div>
+                                    ` : `<div class="text-muted small mt-1" style="font-size: 0.7rem;">-</div>`}
+                                </div>
                             `;
                             returnStepper.appendChild(stepCol);
                         });

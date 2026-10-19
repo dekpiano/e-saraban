@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title><?= $this->renderSection('title') ?> | ระบบสารบรรณและเกษียนหนังสืออิเล็กทรอนิกส์ (School e-Saraban)</title>
+    <title><?= $this->renderSection('title') ?> | ระบบงานสารบรรณ สกจ.</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= base_url('assets/img/favicon/favicon.ico') ?>" />
@@ -222,6 +222,98 @@
         .text-muted { color: #566a7f !important; }
         .table thead th { color: #334155 !important; }
 
+        /* Compact Detached Navbar */
+        .layout-navbar.navbar-detached {
+            min-height: 54px !important;
+            height: 54px !important;
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
+            margin-top: 0.65rem !important;
+            margin-bottom: 0.85rem !important;
+        }
+
+        /* -------------------------------------------------------------
+           PREMIUM SNEAT MODAL DESIGN SYSTEM
+        ------------------------------------------------------------- */
+        .modal-content {
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25) !important;
+            overflow: hidden;
+            font-family: 'K2D', sans-serif !important;
+        }
+        .modal-header {
+            padding: 0.95rem 1.25rem !important;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+        .modal-header .modal-title {
+            font-weight: 700 !important;
+            font-size: 1.05rem !important;
+            color: #0f172a !important;
+            letter-spacing: -0.2px;
+        }
+        .modal-header .btn-close {
+            padding: 0.5rem !important;
+            margin: -0.25rem -0.25rem -0.25rem auto !important;
+            border-radius: 8px;
+            transition: all 0.15s ease-in-out;
+            opacity: 0.7;
+        }
+        .modal-header .btn-close:hover {
+            opacity: 1;
+            background-color: #e2e8f0;
+        }
+        .modal-header.bg-primary .btn-close,
+        .modal-header.bg-success .btn-close,
+        .modal-header.bg-danger .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+            opacity: 0.85;
+        }
+        .modal-header.bg-primary .btn-close:hover,
+        .modal-header.bg-success .btn-close:hover,
+        .modal-header.bg-danger .btn-close:hover {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .modal-body {
+            padding: 1.25rem 1.25rem !important;
+            color: #334155;
+        }
+        .modal-footer {
+            padding: 0.75rem 1.25rem !important;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0 !important;
+        }
+        .modal-footer .btn {
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            padding: 0.45rem 1rem !important;
+            font-size: 0.875rem !important;
+        }
+        .modal-backdrop.show {
+            opacity: 0.55 !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+        }
+        @media (max-width: 767.98px) {
+            .modal-dialog {
+                margin: 0.5rem !important;
+            }
+            .modal-content {
+                border-radius: 14px !important;
+            }
+            .modal-header {
+                padding: 0.85rem 1rem !important;
+            }
+            .modal-body {
+                padding: 1rem !important;
+            }
+            .modal-footer {
+                padding: 0.75rem 1rem !important;
+            }
+        }
+
         /* SweetAlert2 Highest Z-Index (swal2 อยู่บนสุดเสมอ เหนือ modal, backdrop และ navbar) */
         .swal2-container {
             z-index: 100000 !important;
@@ -287,8 +379,8 @@
                             </span>
                         </span>
                         <div class="d-flex flex-column">
-                            <span class="app-brand-text demo menu-text fw-bolder fs-5 text-primary text-uppercase">Saraban</span>
-                            <small class="text-muted" style="font-size: 0.72rem;">ระบบสารบรรณ รร.</small>
+                            <span class="app-brand-text demo menu-text fw-bolder fs-5 text-primary">ระบบงานสารบรรณ สกจ.</span>
+                            <small class="text-muted" style="font-size: 0.70rem;">โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ)</small>
                         </div>
                     </a>
 
@@ -649,7 +741,7 @@
                     <footer class="content-footer footer bg-footer-theme">
                         <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
                             <div class="mb-2 mb-md-0">
-                                © <?= date('Y') ?> ระบบสารบรรณและเสนอเซ็นเกษียนหนังสืออิเล็กทรอนิกส์ (Saraban + e-Signature) | โรงเรียนมัธยมศึกษา
+                                © <?= date('Y') + 543 ?> <strong>ระบบงานสารบรรณ สกจ. (e-Saraban SKJ)</strong> | โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์
                             </div>
                             <div>
                                 <span class="badge bg-label-info">CI4 v4.7.5 + PHP 8.3 + Docker</span>

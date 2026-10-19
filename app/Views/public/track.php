@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>ติดตามหนังสือเลขที่ <?= esc($document['doc_no']) ?> | ระบบสารบรรณ</title>
+    <title>ติดตามหนังสือเลขที่ <?= esc($document['doc_no']) ?> | ระบบงานสารบรรณ สกจ.</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= base_url('assets/img/favicon/favicon.ico') ?>" />
@@ -167,6 +167,21 @@
             object-fit: contain;
             display: inline-block;
         }
+
+        /* Compact Detached Navbar */
+        .layout-navbar.navbar-detached.navbar-compact {
+            min-height: 54px !important;
+            height: 54px !important;
+            padding: 0 0.85rem !important;
+            margin-top: 0.65rem !important;
+            margin-bottom: 0.85rem !important;
+            border-radius: 12px !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05) !important;
+        }
+        .navbar-compact .navbar-brand {
+            padding: 0;
+        }
     </style>
 </head>
 
@@ -180,30 +195,30 @@
 
     <div class="main-wrapper">
 
-        <!-- Detached Sneat Navbar -->
-        <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme glass-card my-3" id="layout-navbar">
-            <div class="container-fluid px-2">
-                <a class="navbar-brand d-flex align-items-center" href="<?= base_url('/') ?>">
-                    <span class="badge bg-primary p-2 rounded-3 me-2 shadow-sm">
-                        <i class="bx bxs-institution fs-3 text-white"></i>
+        <!-- Detached Sneat Navbar (Compact) -->
+        <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme glass-card navbar-compact" id="layout-navbar">
+            <div class="container-fluid px-1 px-sm-2 d-flex align-items-center justify-content-between">
+                <a class="navbar-brand d-flex align-items-center m-0" href="<?= base_url('/') ?>">
+                    <span class="badge bg-primary rounded-3 shadow-sm d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; min-width: 36px;">
+                        <i class="bx bxs-institution fs-4 text-white"></i>
                     </span>
-                    <div>
-                        <span class="fw-bolder fs-5 text-primary text-uppercase">School e-Office</span>
-                        <small class="d-block text-muted" style="font-size: 0.7rem; margin-top: -2px;">ระบบสารบรรณและติดตามงานราชการ</small>
+                    <div class="lh-1">
+                        <span class="fw-bolder text-primary" style="font-size: 1.02rem; letter-spacing: 0.3px;">ระบบงานสารบรรณ สกจ.</span>
+                        <small class="d-none d-sm-block text-secondary fw-semibold" style="font-size: 0.68rem; margin-top: 2px;">โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์</small>
                     </div>
                 </a>
 
-                <div class="d-flex align-items-center gap-2 ms-auto">
-                    <a href="<?= base_url('/') ?>" class="btn btn-outline-secondary btn-sm">
-                        <i class="bx bx-arrow-back me-1"></i> กลับหน้าค้นหา
+                <div class="d-flex align-items-center gap-1.5 ms-auto">
+                    <a href="<?= base_url('/') ?>" class="btn btn-outline-secondary btn-sm px-2.5 py-1 d-inline-flex align-items-center" style="font-size: 0.82rem; height: 34px;">
+                        <i class="bx bx-arrow-back me-1"></i> <span class="d-none d-sm-inline">กลับหน้าค้นหา</span><span class="d-inline d-sm-none">กลับ</span>
                     </a>
                     <?php if ($isLoggedIn): ?>
-                        <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-primary btn-sm shadow-sm">
-                            <i class="bx bx-grid-alt me-1"></i> แดชบอร์ดของฉัน
+                        <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-primary btn-sm px-2.5 py-1 shadow-sm fw-semibold d-inline-flex align-items-center" style="font-size: 0.82rem; height: 34px;">
+                            <i class="bx bx-grid-alt me-1"></i> <span>แดชบอร์ด</span>
                         </a>
                     <?php else: ?>
-                        <a href="<?= base_url('login') ?>" class="btn btn-primary btn-sm shadow-sm">
-                            <i class="bx bx-log-in me-1"></i> เข้าสู่ระบบ (สำหรับบุคลากร)
+                        <a href="<?= base_url('login') ?>" class="btn btn-primary btn-sm px-2.5 py-1 shadow-sm fw-semibold d-inline-flex align-items-center" style="font-size: 0.82rem; height: 34px;">
+                            <i class="bx bx-log-in me-1"></i> <span class="d-none d-sm-inline">เข้าสู่ระบบ (สำหรับบุคลากร)</span><span class="d-inline d-sm-none">เข้าสู่ระบบ</span>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -455,7 +470,7 @@
         <footer class="footer bg-white border-top py-4 mt-5 glass-card">
             <div class="container-xxl text-center text-muted small">
                 <div>
-                    © <?= date('Y') + 543 ?> <strong>ระบบสารบรรณและเกษียนหนังสืออิเล็กทรอนิกส์ (School e-Saraban)</strong>
+                    © <?= date('Y') + 543 ?> <strong>ระบบงานสารบรรณ สกจ. (e-Saraban SKJ)</strong>
                 </div>
                 <div class="mt-1">
                     ระบบเปิดให้ประชาชนและบุคลากรติดตามการดำเนินงานอย่างโปร่งใส

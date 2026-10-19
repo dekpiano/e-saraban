@@ -10,9 +10,9 @@
 ?>
 <!-- Page Header & Key Summary Banner (Sneat Theme Indigo) -->
 <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #696cff 0%, #5f61e6 50%, #4338ca 100%); border-radius: 1rem; position: relative; overflow: hidden;">
-    <div class="card-body p-4 text-white">
+    <div class="card-body p-3 p-md-4 text-white">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div>
+            <div class="w-100 w-md-auto">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-1">
                         <li class="breadcrumb-item"><a href="<?= base_url('admin/dashboard') ?>" class="text-white opacity-75">แดชบอร์ด</a></li>
@@ -31,18 +31,18 @@
                         </span>
                     <?php endif; ?>
                 </div>
-                <h4 class="fw-bold mb-1 text-white" style="font-family: 'K2D', sans-serif;">
+                <h4 class="fw-bold mb-1 text-white travel-header-title" style="font-family: 'K2D', sans-serif;">
                     <?= esc($travel['title']) ?>
                 </h4>
-                <div class="small text-white opacity-90 d-flex flex-wrap align-items-center gap-3 mt-1">
-                    <span><i class="bx bx-user me-1"></i> <?= esc($travel['prefix'] . $travel['first_name'] . ' ' . $travel['last_name']) ?> (<?= esc($travel['position_name']) ?>)</span>
-                    <span><i class="bx bx-map-pin me-1"></i> <?= esc($travel['destination']) ?> (<?= esc($travel['province']) ?>)</span>
-                    <span><i class="bx bx-calendar me-1"></i> <?= thai_date($travel['start_date'], 'short') ?> - <?= thai_date($travel['end_date'], 'short') ?> (<?= esc($travel['total_days']) ?> วัน)</span>
+                <div class="travel-meta-chips small text-white opacity-90 d-flex flex-wrap align-items-center gap-2 gap-md-3 mt-2">
+                    <span class="meta-chip"><i class="bx bx-user me-1"></i> <?= esc($travel['prefix'] . $travel['first_name'] . ' ' . $travel['last_name']) ?> (<?= esc($travel['position_name']) ?>)</span>
+                    <span class="meta-chip"><i class="bx bx-map-pin me-1"></i> <?= esc($travel['destination']) ?> (<?= esc($travel['province']) ?>)</span>
+                    <span class="meta-chip"><i class="bx bx-calendar me-1"></i> <?= thai_date($travel['start_date'], 'short') ?> - <?= thai_date($travel['end_date'], 'short') ?> (<?= esc($travel['total_days']) ?> วัน)</span>
                 </div>
             </div>
-            <div class="d-flex flex-wrap gap-2 align-items-center">
+            <div class="travel-header-actions">
                 <?php if ($isOfficer): ?>
-                    <button type="button" class="btn btn-success text-white btn-sm fw-bold px-3 shadow-sm" onclick="openDefaultTrackingModal()">
+                    <button type="button" class="btn btn-success text-white btn-sm fw-bold px-3 shadow-sm btn-main-track" onclick="openDefaultTrackingModal()">
                         <i class="bx bx-edit-alt me-1 fs-6 align-middle"></i> บันทึกติดตามสถานะ
                     </button>
                     <button type="button" class="btn btn-warning text-dark btn-sm fw-bold px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#uploadTravelModal">
@@ -124,6 +124,7 @@
     $totalReturnSteps = count($returnStages);
 ?>
 <style>
+/* Base Stepper Styling */
 .step-item-clickable {
     cursor: pointer;
     transition: all 0.2s ease-in-out;
@@ -139,12 +140,176 @@
     box-shadow: 0 4px 12px rgba(105, 108, 255, 0.35);
     transform: scale(1.08);
 }
-.step-item-clickable .click-indicator {
-    display: inline-block;
-    transition: opacity 0.2s;
-}
 .step-bubble {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Mobile-First Responsive Styles (< 768px) */
+@media (max-width: 767.98px) {
+    /* Header Banner Mobile */
+    .travel-header-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px !important;
+        margin-top: 1rem;
+        width: 100% !important;
+    }
+    .travel-header-actions .btn-main-track {
+        grid-column: 1 / -1;
+    }
+    .travel-header-actions .btn {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+    .travel-header-title {
+        font-size: 1.15rem !important;
+        line-height: 1.4 !important;
+    }
+    .meta-chip {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.16);
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+    }
+
+    /* Transform Horizontal Stepper into Mobile-First Vertical Timeline */
+    .step-stepper {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        position: relative !important;
+        padding-left: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .step-stepper::before {
+        display: none !important;
+    }
+    .step-stepper.flex-row-reverse {
+        flex-direction: column !important;
+    }
+    .step-item {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        text-align: left !important;
+        width: 100% !important;
+        padding: 10px 14px !important;
+        background: #ffffff !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        margin-bottom: 0 !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+        min-height: 58px;
+    }
+    .step-item.step-item-clickable:active {
+        transform: scale(0.98);
+        background: #f1f5f9 !important;
+    }
+    .step-item.step-item-active-card {
+        border-color: #696cff !important;
+        background: #f8faff !important;
+        box-shadow: 0 2px 8px rgba(105, 108, 255, 0.15) !important;
+    }
+    .step-bubble {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        font-size: 0.95rem !important;
+        margin-bottom: 0 !important;
+        margin-right: 12px !important;
+        flex-shrink: 0 !important;
+    }
+    .step-item-content {
+        flex-grow: 1 !important;
+        min-width: 0 !important;
+    }
+    .step-title-wrap {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+    }
+    .step-title-text {
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        margin-bottom: 0 !important;
+    }
+    .step-receiver-wrap {
+        margin-top: 2px !important;
+    }
+    .step-receiver-wrap span {
+        max-width: 100% !important;
+        font-size: 0.75rem !important;
+    }
+    .step-action-arrow {
+        flex-shrink: 0;
+        padding-left: 6px;
+    }
+
+    /* Modal Touch Optimizations */
+    .modal-dialog {
+        margin: 0.5rem !important;
+    }
+    .quick-step-pills {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+    }
+    .quick-step-pills .btn {
+        min-height: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.78rem !important;
+        white-space: normal !important;
+        text-align: center !important;
+        padding: 4px 6px !important;
+    }
+
+    /* PDF Preview Box on Phone */
+    .pdf-preview-box {
+        height: 320px !important;
+    }
+
+    /* Mobile Floating Quick Action Bar */
+    .travel-mobile-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1030;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-top: 1px solid #e2e8f0;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    }
+}
+
+@media (min-width: 768px) {
+    .travel-header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+    .step-item-content {
+        display: block;
+        text-align: center;
+    }
+    .step-title-wrap {
+        display: block;
+    }
+    .step-badge-wrap {
+        margin-top: 4px;
+    }
 }
 </style>
 <div class="card mb-4 border-0 shadow-sm" style="border-radius: 0.85rem;">
@@ -183,8 +348,9 @@
                     }
 
                     $bubbleClass = $isDone ? 'signed' : ($isReturn ? 'returned' : ($isSkipped ? 'bg-light text-muted border' : ($isCurrent ? 'active' : 'pending')));
+                    $itemActiveCard = $isCurrent ? 'step-item-active-card' : '';
                 ?>
-                <div class="step-item flex-fill <?= $isOfficer ? 'step-item-clickable' : '' ?>" 
+                <div class="step-item flex-fill <?= $itemActiveCard ?> <?= $isOfficer ? 'step-item-clickable' : '' ?>" 
                     <?= $isOfficer ? 'onclick="openOutboundTrackingModal(' . $stepNum . ')" title="คลิกเพื่อบันทึกสถานะขั้นตอนนี้"' : '' ?>>
                     <?php if ($stepNum < 6): ?>
                         <span class="position-absolute top-0 text-primary opacity-50 d-none d-md-block" style="right: -14px; transform: translateY(12px); z-index: 3;">
@@ -205,34 +371,45 @@
                             <?= $stepNum ?>
                         <?php endif; ?>
                         <?php if ($isOfficer): ?>
-                            <span class="position-absolute bottom-0 end-0 bg-white text-primary rounded-circle border shadow-xs d-flex align-items-center justify-content-center" style="width: 18px; height: 18px; font-size: 10px;">
+                            <span class="position-absolute bottom-0 end-0 bg-white text-primary rounded-circle border shadow-xs d-none d-md-flex align-items-center justify-content-center" style="width: 18px; height: 18px; font-size: 10px;">
                                 <i class="bx bx-edit"></i>
                             </span>
                         <?php endif; ?>
                     </div>
-                    <div class="fw-bold text-dark small mb-0" style="font-size: 0.85rem;">
-                        <?= $stepNum ?>. <?= esc($stg['name']) ?>
-                    </div>
-                    <div class="mt-1">
-                        <?php if ($stepNum === 5 && $isApprovedByClerk): ?>
-                            <span class="badge bg-success text-white" style="font-size: 0.68rem;">ปลัด อบจ. อนุมัติ</span>
-                        <?php elseif ($stepNum === 6 && $isApprovedByClerk): ?>
-                            <span class="badge bg-label-secondary" style="font-size: 0.68rem;">ข้ามขั้นตอนนี้</span>
-                        <?php elseif ($isDone): ?>
-                            <span class="badge bg-label-success text-success" style="font-size: 0.68rem;">ผ่านแล้ว</span>
-                        <?php elseif ($isReturn): ?>
-                            <span class="badge bg-danger text-white" style="font-size: 0.68rem;">ส่งคืนแก้ไข</span>
-                        <?php elseif ($isCurrent): ?>
-                            <span class="badge bg-primary text-white" style="font-size: 0.68rem;">อยู่ที่นี่</span>
-                        <?php else: ?>
-                            <span class="badge bg-label-secondary text-muted" style="font-size: 0.68rem;">รอ</span>
+
+                    <div class="step-item-content">
+                        <div class="step-title-wrap">
+                            <div class="fw-bold text-dark step-title-text" style="font-size: 0.85rem;">
+                                <?= $stepNum ?>. <?= esc($stg['name']) ?>
+                            </div>
+                            <div class="step-badge-wrap mt-md-1">
+                                <?php if ($stepNum === 5 && $isApprovedByClerk): ?>
+                                    <span class="badge bg-success text-white" style="font-size: 0.68rem;">ปลัด อบจ. อนุมัติ</span>
+                                <?php elseif ($stepNum === 6 && $isApprovedByClerk): ?>
+                                    <span class="badge bg-label-secondary" style="font-size: 0.68rem;">ข้ามขั้นตอนนี้</span>
+                                <?php elseif ($isDone): ?>
+                                    <span class="badge bg-label-success text-success fw-bold" style="font-size: 0.68rem;">ผ่านแล้ว</span>
+                                <?php elseif ($isReturn): ?>
+                                    <span class="badge bg-danger text-white fw-bold" style="font-size: 0.68rem;">ส่งคืนแก้ไข</span>
+                                <?php elseif ($isCurrent): ?>
+                                    <span class="badge bg-primary text-white fw-bold" style="font-size: 0.68rem;">อยู่ที่นี่</span>
+                                <?php else: ?>
+                                    <span class="badge bg-label-secondary text-muted" style="font-size: 0.68rem;">รอ</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php if (!empty($stepReceivers[$stepNum]['name'])): ?>
+                            <div class="step-receiver-wrap mt-1">
+                                <span class="text-secondary d-inline-block text-truncate" style="max-width: 180px; font-size: 0.72rem;" title="<?= esc($stepReceivers[$stepNum]['name']) ?>">
+                                    <i class="bx bx-user text-primary"></i> <?= esc($stepReceivers[$stepNum]['name']) ?>
+                                </span>
+                            </div>
                         <?php endif; ?>
                     </div>
-                    <?php if (!empty($stepReceivers[$stepNum]['name'])): ?>
-                        <div class="mt-1">
-                            <span class="text-secondary d-inline-block text-truncate" style="max-width: 130px; font-size: 0.68rem;" title="<?= esc($stepReceivers[$stepNum]['name']) ?>">
-                                <i class="bx bx-user text-primary"></i> <?= esc($stepReceivers[$stepNum]['name']) ?>
-                            </span>
+
+                    <?php if ($isOfficer): ?>
+                        <div class="step-action-arrow d-md-none ms-auto text-primary">
+                            <i class="bx bx-chevron-right fs-4"></i>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -269,8 +446,9 @@
                     $isRetCur  = ($curRetStep == $rNum && $curRetStep < $totalReturnSteps && $isApproved);
                     $retReceiver = $stepReceivers['return_' . $rNum]['name'] ?? null;
                     $bubbleClass = $isRetDone ? 'signed' : ($isRetCur ? 'active' : 'pending');
+                    $itemActiveCard = $isRetCur ? 'step-item-active-card' : '';
                 ?>
-                <div class="step-item flex-fill <?= ($isOfficer && $isApproved) ? 'step-item-clickable' : '' ?>"
+                <div class="step-item flex-fill <?= $itemActiveCard ?> <?= ($isOfficer && $isApproved) ? 'step-item-clickable' : '' ?>"
                     <?= ($isOfficer && $isApproved) ? 'onclick="openReturnTrackingModal(' . $rNum . ')" title="คลิกเพื่อบันทึกส่งมอบขากลับขั้นตอนนี้"' : '' ?>>
                     <?php if ($rNum < $totalReturnSteps): ?>
                         <span class="position-absolute top-0 text-success opacity-50 d-none d-md-block" style="left: -14px; transform: translateY(12px); z-index: 3;">
@@ -287,30 +465,41 @@
                             <?= $rNum ?>
                         <?php endif; ?>
                         <?php if ($isOfficer && $isApproved): ?>
-                            <span class="position-absolute bottom-0 end-0 bg-white text-success rounded-circle border shadow-xs d-flex align-items-center justify-content-center" style="width: 18px; height: 18px; font-size: 10px;">
+                            <span class="position-absolute bottom-0 end-0 bg-white text-success rounded-circle border shadow-xs d-none d-md-flex align-items-center justify-content-center" style="width: 18px; height: 18px; font-size: 10px;">
                                 <i class="bx bx-edit"></i>
                             </span>
                         <?php endif; ?>
                     </div>
-                    <div class="fw-bold text-dark small mb-0" style="font-size: 0.85rem;">
-                        <?= $rNum ?>. <?= esc($rstg['name']) ?>
-                    </div>
-                    <div class="mt-1">
-                        <?php if (!$isApproved): ?>
-                            <span class="badge bg-label-secondary text-muted" style="font-size: 0.68rem;">รออนุมัติ</span>
-                        <?php elseif ($isRetDone): ?>
-                            <span class="badge bg-success text-white" style="font-size: 0.68rem;">เรียบร้อย</span>
-                        <?php elseif ($isRetCur): ?>
-                            <span class="badge bg-warning text-dark" style="font-size: 0.68rem;">อยู่ที่นี่</span>
-                        <?php else: ?>
-                            <span class="badge bg-label-secondary text-muted" style="font-size: 0.68rem;">รอ</span>
+
+                    <div class="step-item-content">
+                        <div class="step-title-wrap">
+                            <div class="fw-bold text-dark step-title-text" style="font-size: 0.85rem;">
+                                <?= $rNum ?>. <?= esc($rstg['name']) ?>
+                            </div>
+                            <div class="step-badge-wrap mt-md-1">
+                                <?php if (!$isApproved): ?>
+                                    <span class="badge bg-label-secondary text-muted" style="font-size: 0.68rem;">รออนุมัติ</span>
+                                <?php elseif ($isRetDone): ?>
+                                    <span class="badge bg-success text-white fw-bold" style="font-size: 0.68rem;">เรียบร้อย</span>
+                                <?php elseif ($isRetCur): ?>
+                                    <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.68rem;">อยู่ที่นี่</span>
+                                <?php else: ?>
+                                    <span class="badge bg-label-secondary text-muted" style="font-size: 0.68rem;">รอ</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php if (!empty($retReceiver)): ?>
+                            <div class="step-receiver-wrap mt-1">
+                                <span class="text-secondary d-inline-block text-truncate" style="max-width: 180px; font-size: 0.72rem;" title="<?= esc($retReceiver) ?>">
+                                    <i class="bx bx-user text-success"></i> <?= esc($retReceiver) ?>
+                                </span>
+                            </div>
                         <?php endif; ?>
                     </div>
-                    <?php if (!empty($retReceiver)): ?>
-                        <div class="mt-1">
-                            <span class="text-secondary d-inline-block text-truncate" style="max-width: 130px; font-size: 0.68rem;" title="<?= esc($retReceiver) ?>">
-                                <i class="bx bx-user text-success"></i> <?= esc($retReceiver) ?>
-                            </span>
+
+                    <?php if ($isOfficer && $isApproved): ?>
+                        <div class="step-action-arrow d-md-none ms-auto text-success">
+                            <i class="bx bx-chevron-right fs-4"></i>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -517,7 +706,13 @@
             </div>
             <div class="card-body p-0">
                 <?php if (!empty($travel['file_path'])): ?>
-                    <div style="height: 480px; width: 100%; background: #525659;">
+                    <div class="d-block d-md-none p-3 bg-light border-bottom text-center">
+                        <a href="<?= document_url($travel['file_path']) ?>" target="_blank" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">
+                            <i class="bx bxs-file-pdf me-1 fs-5 align-middle"></i> แตะเพื่อเปิดดูเอกสาร PDF แบบเต็มจอ
+                        </a>
+                        <small class="text-muted d-block mt-1">สมาร์ตโฟนจะแสดงผลเอกสารได้ชัดเจนขึ้นเมื่อเปิดแบบเต็มจอ</small>
+                    </div>
+                    <div class="pdf-preview-box" style="height: 480px; width: 100%; background: #525659;">
                         <iframe src="<?= document_url($travel['file_path']) ?>#toolbar=0" style="width: 100%; height: 100%; border: none;"></iframe>
                     </div>
                 <?php else: ?>
@@ -1211,7 +1406,7 @@
 
                                     <div class="col-12">
                                         <label class="form-label fw-semibold text-dark">ปุ่มลัดเลือกขั้นตอน & ข้อความด่วน</label>
-                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                        <div class="quick-step-pills d-flex flex-wrap gap-1 mb-2">
                                             <button type="button" class="btn btn-xs <?= $curStep == 1 ? 'btn-outline-primary active' : 'btn-outline-secondary' ?>" onclick="selectStepAndNote(1, 'ผู้ขอยื่นขออนุมัติในระบบเรียบร้อย (ตรวจสอบรายการเอกสารที่ส่งมาด้วย)')" <?= $canSelect(1) ? '' : 'disabled style="opacity:0.35;"' ?>>1. ยื่นขออนุมัติ</button>
                                             <button type="button" class="btn btn-xs <?= $nextStep == 2 ? 'btn-primary' : 'btn-outline-primary' ?>" onclick="selectStepAndNote(2, 'เอกสารอยู่ที่โรงเรียน (ธุรการจัดทำเรื่อง/ตรวจสอบเอกสาร/แนบไฟล์)')" <?= $canSelect(2) ? '' : 'disabled style="opacity:0.35;"' ?>>2. โรงเรียน (แนบไฟล์)</button>
                                             <button type="button" class="btn btn-xs <?= $nextStep == 3 ? 'btn-primary' : 'btn-outline-info' ?>" onclick="selectStepAndNote(3, 'ส่งเรื่องถึงกองการศึกษาเรียบร้อยแล้ว')" <?= $canSelect(3) ? '' : 'disabled style="opacity:0.35;"' ?>>3. ส่งกองการศึกษา</button>
@@ -1312,7 +1507,7 @@
 
                                     <div class="col-12">
                                         <label class="form-label fw-semibold text-dark">ปุ่มลัดระบุสถานะและหมายเหตุ</label>
-                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                        <div class="quick-step-pills d-flex flex-wrap gap-1 mb-2">
                                             <?php foreach ($returnStages as $rIdx => $rItem): ?>
                                                 <?php
                                                     $nextRetStep = $curReturnStep + 1;
@@ -1385,6 +1580,33 @@
 
     </div>
 </div>
+
+<!-- Mobile Floating Quick Action Dock (แสดงเฉพาะบนสมาร์ตโฟน < 768px) -->
+<div class="travel-mobile-dock d-md-none">
+    <div class="d-flex align-items-center justify-content-between gap-2">
+        <a href="<?= base_url('admin/travel') ?>" class="btn btn-outline-secondary btn-sm px-3 py-2" title="ย้อนกลับ">
+            <i class="bx bx-arrow-back fs-5"></i>
+        </a>
+        <?php if (!empty($travel['file_path'])): ?>
+            <a href="<?= document_url($travel['file_path']) ?>" target="_blank" class="btn btn-outline-danger btn-sm px-3 py-2" title="เปิดดูไฟล์ฉบับเต็ม">
+                <i class="bx bxs-file-pdf fs-5"></i>
+            </a>
+        <?php endif; ?>
+        <?php if ($isOfficer): ?>
+            <button type="button" class="btn btn-success text-white fw-bold btn-sm py-2 px-3 flex-grow-1 shadow-sm" onclick="openDefaultTrackingModal()">
+                <i class="bx bx-edit-alt me-1 fs-5 align-middle"></i> บันทึกติดตามสถานะ
+            </button>
+            <button type="button" class="btn btn-warning text-dark btn-sm px-3 py-2 shadow-xs" data-bs-toggle="modal" data-bs-target="#uploadTravelModal" title="แนบไฟล์คำสั่ง">
+                <i class="bx bx-upload fs-5"></i>
+            </button>
+        <?php else: ?>
+            <a href="<?= base_url('admin/travel') ?>" class="btn btn-primary fw-bold btn-sm py-2 px-3 flex-grow-1 shadow-sm">
+                <i class="bx bx-list-ul me-1"></i> กลับหน้ารายการ
+            </a>
+        <?php endif; ?>
+    </div>
+</div>
+<div class="d-md-none" style="height: 68px;"></div>
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>

@@ -173,8 +173,8 @@ class TravelController extends BaseController
             return redirect()->back()->withInput()->with('error', "เรื่อง '{$title}' มีบันทึกอยู่ในระบบแล้ว (เลขที่หนังสือ: {$existingTitle['doc_no']}) กรุณาตรวจสอบเพื่อป้องกันการยื่นเรื่องซ้ำซ้อน");
         }
 
-        $destination     = $this->request->getPost('destination');
-        $province        = $this->request->getPost('province') ?: 'กรุงเทพมหานคร';
+        $destination     = trim((string)$this->request->getPost('destination'));
+        $province        = trim((string)$this->request->getPost('province')) ?: 'กรุงเทพมหานคร';
         $startDate       = $this->request->getPost('start_date');
         if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $startDate, $m) && (int)$m[1] > 2400) {
             $startDate = ((int)$m[1] - 543) . '-' . $m[2] . '-' . $m[3];

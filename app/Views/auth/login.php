@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>ลงชื่อเข้าใช้ด้วย Google | ระบบสารบรรณอิเล็กทรอนิกส์</title>
+    <title>ลงชื่อเข้าใช้ด้วย Google | ระบบงานสารบรรณ สกจ.</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= base_url('assets/img/favicon/favicon.ico') ?>" />
@@ -150,7 +150,7 @@
                                 </svg>
                             </div>
                             <h4 class="fw-bold mb-1 text-dark" style="font-family: 'K2D', sans-serif;">
-                                ระบบสารบรรณและเกษียนหนังสือ
+                                ระบบงานสารบรรณ สกจ.
                             </h4>
                             <p class="text-secondary small mb-2">
                                 โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์

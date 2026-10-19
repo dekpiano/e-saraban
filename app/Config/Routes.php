@@ -37,6 +37,7 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
     // Profile & e-Signature
     $routes->get('profile', 'AuthController::profile');
     $routes->post('profile/signature', 'AuthController::saveSignature');
+    $routes->post('profile/signature/delete', 'AuthController::deleteSignature');
 
     // Documents & e-Saraban
     $routes->get('documents', 'DocumentController::index');
@@ -101,6 +102,7 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
 $routes->addRedirect('dashboard', 'admin/dashboard');
 $routes->addRedirect('profile', 'admin/profile');
 $routes->post('profile/signature', 'AuthController::saveSignature', ['filter' => 'auth']);
+$routes->post('profile/signature/delete', 'AuthController::deleteSignature', ['filter' => 'auth']);
 $routes->addRedirect('documents', 'admin/documents');
 $routes->addRedirect('documents/(:any)', 'admin/documents/$1');
 $routes->addRedirect('travel', 'admin/travel');

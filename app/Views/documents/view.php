@@ -170,13 +170,19 @@
         <!-- Modal Upload Document File -->
         <div class="modal fade" id="uploadDocModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
+                <div class="modal-content border-0 shadow-lg">
                     <form action="<?= base_url('admin/documents/' . $document['id'] . '/upload') ?>" method="POST" enctype="multipart/form-data">
                         <?= csrf_field() ?>
-                        <div class="modal-header">
-                            <h5 class="modal-title fw-bold text-primary">
-                                <i class="bx bx-upload me-1"></i> อัปโหลด / เปลี่ยนไฟล์เอกสารแนบ
-                            </h5>
+                        <div class="modal-header border-bottom py-3 px-4 bg-light">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-primary p-2 rounded-3 me-2.5 shadow-sm">
+                                    <i class="bx bx-upload fs-4 text-white"></i>
+                                </span>
+                                <div>
+                                    <h5 class="modal-title fw-bold text-dark mb-0">อัปโหลด / เปลี่ยนไฟล์เอกสารแนบ</h5>
+                                    <small class="text-secondary">แนบไฟล์ PDF ต้นเรื่องเพื่อใช้ประกอบการลงนาม</small>
+                                </div>
+                            </div>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-4">
@@ -227,9 +233,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                            <button type="submit" class="btn btn-primary">
+                        <div class="modal-footer border-top bg-light py-2.5 px-4 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold" data-bs-dismiss="modal">ยกเลิก</button>
+                            <button type="submit" class="btn btn-primary btn-sm fw-semibold shadow-sm">
                                 <i class="bx bx-save me-1"></i> บันทึกและอัปโหลดไฟล์
                             </button>
                         </div>
@@ -446,10 +452,11 @@ document.addEventListener('DOMContentLoaded', function () {
         canvas.getContext("2d").scale(ratio, ratio);
 
         signaturePad = new SignaturePad(canvas, {
-            penColor: 'rgb(24, 43, 73)',
+            penColor: '#0038a8',
             backgroundColor: 'rgba(255, 255, 255, 0)',
             minWidth: 1.5,
-            maxWidth: 3.5
+            maxWidth: 3.2,
+            velocityFilterWeight: 0.7
         });
 
         document.getElementById('clearCanvasBtn').addEventListener('click', function () {

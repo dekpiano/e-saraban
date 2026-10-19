@@ -41,17 +41,32 @@ class UserModel extends Model
 
         // เชื่อมโยงข้อมูลบุคลากรจริงจาก tb_personnel โดยตรงผ่านอีเมลโรงเรียน
         $db = \Config\Database::connect();
-        $person = $db->table('skjacth_personnel.tb_personnel p')
-                     ->select('p.pers_id, p.pers_prefix, p.pers_firstname, p.pers_lastname, p.pers_phone, p.pers_img, p.pers_signature, pos.posi_name, l.lear_namethai')
-                     ->join('skjacth_skj.tb_position pos', 'pos.posi_id = p.pers_position', 'left')
-                     ->join('skjacth_skj.tb_learning l', 'l.lear_id = p.pers_learning', 'left')
-                     ->groupStart()
-                         ->where('p.pers_username', $user['email'])
-                         ->orWhere('p.pers_username', $user['username'])
-                         ->orWhere('p.pers_id', $user['pers_id'])
-                     ->groupEnd()
-                     ->get()
-                     ->getRowArray();
+        try {
+            $person = $db->table('skjacth_personnel.tb_personnel p')
+                         ->select('p.pers_id, p.pers_prefix, p.pers_firstname, p.pers_lastname, p.pers_phone, p.pers_img, p.pers_signature, pos.posi_name, l.lear_namethai')
+                         ->join('skjacth_skj.tb_position pos', 'pos.posi_id = p.pers_position', 'left')
+                         ->join('skjacth_skj.tb_learning l', 'l.lear_id = p.pers_learning', 'left')
+                         ->groupStart()
+                             ->where('p.pers_username', $user['email'])
+                             ->orWhere('p.pers_username', $user['username'])
+                             ->orWhere('p.pers_id', $user['pers_id'])
+                         ->groupEnd()
+                         ->get()
+                         ->getRowArray();
+        } catch (\Throwable $e) {
+            // ป้องกันกรณีฐานข้อมูลบนเซิร์ฟเวอร์จริงยังไม่ได้เพิ่มคอลัมน์ pers_signature
+            $person = $db->table('skjacth_personnel.tb_personnel p')
+                         ->select('p.pers_id, p.pers_prefix, p.pers_firstname, p.pers_lastname, p.pers_phone, p.pers_img, pos.posi_name, l.lear_namethai')
+                         ->join('skjacth_skj.tb_position pos', 'pos.posi_id = p.pers_position', 'left')
+                         ->join('skjacth_skj.tb_learning l', 'l.lear_id = p.pers_learning', 'left')
+                         ->groupStart()
+                             ->where('p.pers_username', $user['email'])
+                             ->orWhere('p.pers_username', $user['username'])
+                             ->orWhere('p.pers_id', $user['pers_id'])
+                         ->groupEnd()
+                         ->get()
+                         ->getRowArray();
+        }
 
         if ($person) {
             $user['prefix']          = $person['pers_prefix'];
