@@ -1,0 +1,719 @@
+@charset "UTF-8";
+/* ==========================================================================
+   บันทึกข้อความ - แม่แบบมาตรฐานราชการไทย 100% (e-Saraban Memo Template)
+   ========================================================================== */
+
+@import url('../vendor/fonts/sarabun-embedded.css');
+
+/* ==========================================================================
+   1. ขนาดตัวอักษรและการตั้งค่าระบบ (Typography & Variables)
+   ========================================================================== */
+:root {
+    /* ขนาดตัวอักษรมาตรฐานราชการ (16px, 20px, 29px) */
+    --font-normal: 16px;
+    --font-label: 17px;
+    --font-title: 29px;
+    --line-height: 1.50; /* ขยายระยะห่างบรรทัดเป็น 1.50 ตามมาตรฐานที่ผู้ใช้กำหนด */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #525659;
+    font-family: 'TH Sarabun New', 'TH Sarabun PSK', 'Sarabun', sans-serif;
+    font-size: var(--font-normal);
+    color: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px 50px 10px;
+    line-height: var(--line-height);
+    min-height: 100vh;
+}
+
+/* ==========================================================================
+   2. หน้ากระดาษ A4 มาตรฐานราชการ (Official A4 Page)
+   ========================================================================== */
+.page-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    transition: transform 0.2s ease;
+}
+
+.page {
+    background-color: white;
+    width: 21cm;
+    min-height: 29.7cm;
+    /* ขอบกระดาษตามที่กำหนด: บน 3cm, ขวา 2cm, ล่าง 2cm, ซ้าย 3cm */
+    padding: 3cm 2cm 2cm 3cm;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    position: relative;
+    box-sizing: border-box;
+    font-family: 'TH Sarabun New', 'TH Sarabun PSK', 'Sarabun', sans-serif;
+    font-size: var(--font-normal);
+    color: #000;
+    line-height: var(--line-height);
+    margin: 0 auto;
+}
+
+.page * {
+    font-family: 'TH Sarabun New', 'TH Sarabun PSK', 'Sarabun', sans-serif;
+    box-sizing: border-box;
+}
+
+/* ชั้นความลับ */
+.secret-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    color: #ff0000;
+    font-size: var(--font-normal);
+    left: 0;
+}
+.secret-text.top { top: 0.5cm; }
+.secret-text.bottom { bottom: 0.5cm; }
+
+/* หัวหนังสือราชการ */
+.header {
+    position: relative;
+    margin-bottom: 14px;
+    min-height: 1.5cm;
+}
+
+.garuda {
+    /* ตราครุฑย่อ สำหรับบันทึกข้อความ สูง 1.5cm จัดวางซ้ายสุด */
+    height: 1.5cm; 
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.document-title {
+    font-size: var(--font-title);
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* ==========================================================================
+   3. แถวข้อมูลหัวกระดาษ (Form Rows & Fields)
+   ========================================================================== */
+.form-row {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 4px; /* ส่วนหัวกระดาษไม่ขยับ คงระยะเดิมกระชับ */
+    width: 100%;
+}
+
+.label {
+    font-size: var(--font-label);
+    font-weight: bold;
+    margin-right: 8px;
+    white-space: nowrap;
+    line-height: 1.1;
+}
+
+.editable-field {
+    flex-grow: 1;
+    border-bottom: 1px dotted #000;
+    min-height: 18px;
+    outline: none;
+    font-size: var(--font-normal);
+    padding: 0 4px 0px 4px; /* ชิดเส้นประติดฐานตัวอักษร ไม่ขยับ */
+    color: #000;
+    line-height: 1.50;
+    position: relative;
+}
+
+.editable-field.handwritten {
+    color: #2b3990;
+}
+
+.col-2 {
+    display: flex;
+    width: 100%;
+    gap: 20px;
+    margin-bottom: 4px; /* ส่วนหัวกระดาษไม่ขยับ */
+}
+
+.col-2 > div {
+    display: flex;
+    align-items: baseline;
+}
+
+.col-left {
+    flex: 1.1;
+}
+
+.col-right {
+    flex: 0.9;
+}
+
+.subject-row {
+    margin-bottom: 4px; /* ส่วนหัวกระดาษไม่ขยับ */
+}
+
+.salutation {
+    font-size: var(--font-normal);
+    margin-top: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: baseline;
+}
+
+.salutation .label {
+    font-size: var(--font-normal);
+    font-weight: normal;
+    margin-right: 8px;
+}
+
+/* ==========================================================================
+   4. เนื้อหาข้อความ ย่อหน้า และระยะห่างแถว (Body Text, Indent & Row Spacing)
+   ========================================================================== */
+.body-text {
+    text-align: justify;
+    text-justify: inter-character;
+    -webkit-text-justify: inter-character;
+    text-align-last: left;
+    -webkit-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: var(--line-height);
+    margin-top: 12px;
+    outline: none;
+    font-size: var(--font-normal);
+}
+
+/* ย่อหน้ามาตรฐาน 2.5 ซม. (2.5cm) ตามระเบียบสารบรรณสำนักนายกรัฐมนตรี */
+.indent,
+.body-text p {
+    text-align: justify;
+    text-justify: inter-character;
+    -webkit-text-justify: inter-character;
+    text-align-last: left;
+    -webkit-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+    word-break: normal;
+    overflow-wrap: break-word;
+    text-indent: 2.5cm;
+    margin-bottom: 15px; /* เว้นระยะห่างระหว่างย่อหน้าให้โปร่งขึ้นตามที่ต้องการ */
+    line-height: var(--line-height);
+    font-size: var(--font-normal);
+}
+
+/* เมื่อมีการตัดบรรทัดด้วย Shift + Enter (<br>) ให้บรรทัดนั้นขยายตัวอักษรและยื้อเต็มบรรทัด */
+.body-text p:has(br) {
+    text-align-last: justify;
+}
+
+.body-text p:last-child {
+    margin-bottom: 0;
+}
+
+/* คลาสป้องกันคำสำคัญตกบรรทัด หรือฉีกออกจากกัน */
+.thai-no-wrap,
+.no-break {
+    white-space: nowrap !important;
+}
+
+/* ย่อหน้ารอง 3.0 ซม. */
+.indent-sub {
+    text-indent: 3.0cm;
+}
+
+.space-before-6pt {
+    margin-top: 12px;
+}
+
+/* ลายน้ำข้อความตัวอย่าง (Watermark Sample Text & Placeholders) */
+.is-watermark,
+.is-watermark p,
+.sample-watermark {
+    color: #94a3b8 !important;
+}
+
+[contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: #94a3b8;
+    pointer-events: none;
+    display: inline-block;
+    font-weight: normal;
+}
+
+.body-text[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: #94a3b8;
+    text-indent: 2.5cm;
+    display: block;
+    white-space: pre-wrap;
+    pointer-events: none;
+    line-height: var(--line-height);
+}
+
+/* ==========================================================================
+   เส้นแบ่งหน้าและตัวบอกสถานะแผ่นที่ ๒ (Page Break & Counter System)
+   ========================================================================== */
+.bar-page-counter {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    cursor: default;
+}
+
+.bar-page-counter.badge-single-page {
+    background: rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+}
+
+.bar-page-counter.badge-multi-page {
+    background: #b45309 !important;
+    color: #ffffff !important;
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+    cursor: pointer !important;
+    animation: pulse-page-counter 2.2s infinite ease-in-out;
+}
+
+@keyframes pulse-page-counter {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+}
+
+/* เส้นประแบ่งหน้า A4 เสมือนจริงบนหน้าจอ */
+.page-break-indicator {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 0;
+    border-top: 2px dashed #2563eb;
+    z-index: 40;
+    pointer-events: none;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.page-break-badge {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1d4ed8;
+    color: #ffffff;
+    font-family: 'K2D', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 14px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(29, 78, 216, 0.4);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.3px;
+}
+
+/* เลขหน้าหัวกระดาษแผ่นที่ ๒ ขึ้นไป (- ๒ -) ตามระเบียบสารบรรณ */
+.page-header-number {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-family: 'TH Sarabun New', 'TH Sarabun PSK', 'Sarabun', sans-serif;
+    font-size: 16px;
+    font-weight: normal;
+    color: #000000;
+    pointer-events: none;
+    z-index: 35;
+}
+
+/* ==========================================================================
+   5. ส่วนลงนาม (Signatures)
+   ========================================================================== */
+.signature-section {
+    /* เว้น 3-4 บรรทัด (Enter 3-4 ครั้ง = 60-72pt) ตามระเบียบงานสารบรรณ */
+    margin-top: 65px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.signature-box {
+    width: 8cm;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.signature-line {
+    width: 100%;
+    margin-bottom: 5px;
+    min-height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.signature-img {
+    max-height: 55px;
+    opacity: 0.85;
+}
+
+.sign-name {
+    outline: none;
+    width: 100%;
+    margin-bottom: 2px;
+    font-size: var(--font-normal);
+    white-space: nowrap;
+}
+
+.sign-position {
+    outline: none;
+    width: 100%;
+    line-height: 1.2;
+    font-size: var(--font-normal);
+}
+
+.text-blue {
+    color: #5575b4;
+}
+
+/* ==========================================================================
+   6. แถบเมนูลอยแบบ Clean & Modern (Floating Action Topbar)
+   ========================================================================== */
+.floating-action-bar {
+    position: sticky;
+    top: 10px;
+    z-index: 1000;
+    margin-bottom: 15px;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    color: #ffffff;
+    font-family: 'K2D', sans-serif;
+    font-size: 13px;
+}
+
+.bar-title {
+    font-weight: 700;
+    color: #f8fafc;
+    padding-right: 8px;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.bar-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'K2D', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.bar-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.bar-btn-print {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    font-weight: 600;
+}
+.bar-btn-print:hover { background: #0369a1; }
+
+.bar-btn-draft {
+    background: #d97706;
+    border-color: #f59e0b;
+    color: #ffffff;
+    font-weight: 600;
+}
+.bar-btn-draft:hover { background: #b45309; }
+
+.bar-btn-submit {
+    background: #16a34a;
+    border-color: #22c55e;
+    color: #ffffff;
+    font-weight: 700;
+}
+.bar-btn-submit:hover { background: #15803d; }
+
+.bar-btn-settings {
+    background: #6366f1;
+    border-color: #818cf8;
+    color: #ffffff;
+}
+
+/* ส่วนปรับ Zoom หน้ากระดาษ */
+.bar-zoom-group {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 2px 6px;
+    gap: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.bar-zoom-btn {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 5px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+}
+.bar-zoom-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+.bar-zoom-label {
+    font-size: 11px;
+    color: #94a3b8;
+    min-width: 36px;
+    text-align: center;
+}
+
+/* ==========================================================================
+   7. Drawer ตั้งค่าการเดินเรื่อง (Workflow Drawer)
+   ========================================================================== */
+.drawer-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1200;
+    backdrop-filter: blur(2px);
+}
+.drawer-backdrop.show { display: block; }
+
+.settings-drawer {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    max-width: 90vw;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.3);
+    z-index: 1300;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    font-family: 'K2D', sans-serif;
+    text-align: left;
+}
+.settings-drawer.open { right: 0; }
+
+.drawer-header {
+    background: #1e293b;
+    color: #ffffff;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.drawer-title { font-size: 15px; font-weight: 700; }
+.drawer-close { background: none; border: none; color: #94a3b8; font-size: 22px; cursor: pointer; }
+.drawer-close:hover { color: #fff; }
+.drawer-body { padding: 18px; overflow-y: auto; flex-grow: 1; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 5px; }
+.form-control, .form-select {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'K2D', sans-serif;
+    outline: none;
+}
+.step-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 10px; background: #f8fafc; }
+.step-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-bottom: 5px; background: #dbeafe; color: #1e40af; }
+
+/* ==========================================================================
+   7.1 หน้าต่างจัดการลายเซ็นดิจิทัลออนไลน์ (e-Signature Modal)
+   ========================================================================== */
+.sig-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 440px;
+    max-width: 92vw;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+    z-index: 1400;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'K2D', sans-serif;
+    overflow: hidden;
+}
+.sig-modal.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+.sig-modal-header {
+    background: #1e293b;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.sig-modal-body {
+    padding: 18px;
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: left;
+}
+.sig-option-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    background: #f8fafc;
+}
+.sig-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'K2D', sans-serif;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+}
+.sig-btn-primary { background: #696cff; color: #fff; }
+.sig-btn-primary:hover { background: #5f61e6; }
+.sig-btn-success { background: #22c55e; color: #fff; }
+.sig-btn-success:hover { background: #16a34a; }
+.sig-btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.sig-btn-secondary:hover { background: #e2e8f0; }
+.sig-btn-danger { background: #fff; color: #ef4444; border: 1px solid #fca5a5; }
+.sig-btn-danger:hover { background: #fee2e2; }
+
+/* ==========================================================================
+   8. มาตรฐานการพิมพ์และดาวน์โหลด PDF (Official Print & Export 100%)
+   ========================================================================== */
+@media print {
+    :root {
+        /* ปรับขนาดตัวอักษรสำหรับสั่งพิมพ์เป็น 16px, 17px, 29px และ line-height 1.50 */
+        --font-normal: 16px !important;
+        --font-label: 16px !important;
+        --font-title: 29px !important;
+        --line-height: 1.50 !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+
+    body {
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .floating-action-bar,
+    .print-control-bar,
+    .settings-drawer,
+    .drawer-backdrop,
+    .page-break-indicator,
+    .page-break-badge,
+    .page-header-number,
+    .bar-page-counter,
+    .no-print {
+        display: none !important;
+    }
+
+    .page-wrapper,
+    .page-container {
+        transform: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+    }
+
+    .page {
+        box-shadow: none !important;
+        width: 21cm !important;
+        min-height: 29.7cm !important;
+        padding: 3cm 2cm 2cm 3cm !important;
+        margin: 0 !important;
+        position: relative !important;
+        left: 0 !important;
+        top: 0 !important;
+        transform: none !important;
+    }
+
+    .editable-field {
+        border-bottom: 1px dotted #000 !important;
+        padding-bottom: 0 !important;
+        line-height: 1.50 !important;
+    }
+
+    .body-text,
+    .body-text p {
+        text-align: justify !important;
+        text-justify: inter-character !important;
+        -webkit-text-justify: inter-character !important;
+        text-align-last: left !important;
+        word-break: normal !important;
+    }
+
+    .body-text p:has(br) {
+        text-align-last: justify !important;
+    }
+
+    .signature-section {
+        margin-top: 2cm !important;
+    }
+}

@@ -1,0 +1,19 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: saraban_app
+    restart: unless-stopped
+    ports:
+      - "8000:443"
+    volumes:
+      - .:/var/www/html
+    environment:
+      CI_ENVIRONMENT: development
+    networks:
+      - skj2025_default
+
+networks:
+  skj2025_default:
+    external: true

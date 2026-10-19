@@ -1,69 +1,88 @@
-# CodeIgniter 4 Application Starter
+# ระบบสารบรรณและเสนอเซ็นเกษียนหนังสืออิเล็กทรอนิกส์ (School e-Saraban + e-Signature)
 
-## What is CodeIgniter?
+ระบบบริหารงานสารบรรณโรงเรียนและการเดินแฟ้มเสนอเกษียน/อนุมัติหนังสือราชการอิเล็กทรอนิกส์ พัฒนาด้วย **CodeIgniter 4 (CI4) + PHP 8.3 + MariaDB** ร่วมกับธีม **Sneat Bootstrap 5 HTML Admin Template** พร้อมรันบน **Docker**
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+---
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+## 🚀 ลิงก์เข้าใช้งานระบบ
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+| บริการ | URL | คำอธิบาย |
+|---|---|---|
+| **School Saraban App** | [http://localhost:8000](http://localhost:8000) | หน้าเว็บหลักของระบบ (เข้าสู่ระบบ/แดชบอร์ด) |
+| **phpMyAdmin (skj2025_pma)** | [http://localhost:8081](http://localhost:8081) | จัดการฐานข้อมูล MariaDB (`skjacth_saraban`) |
+| **MariaDB (skj2025_db)** | `localhost:3306` | เชื่อมต่อผ่านฐานข้อมูลกลางของโรงเรียน (`skjacth_saraban`) |
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+---
 
-## Installation & updates
+## 🔑 บัญชีผู้ใช้งานสำหรับทดสอบระบบ (รหัสผ่านเริ่มต้น: `123456`)
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+> **สะดวกสุด:** ที่หน้า [Login](http://localhost:8000/login) มีปุ่ม **1-Click Login** สำหรับสลับเข้าใช้งานแต่ละบทบาทได้ทันที และที่แถบ Navbar ด้านบนมีเมนู **สลับผู้ใช้งานทดสอบ (Quick Switch)** ให้กดเปลี่ยนบทบาทเพื่อทดสอบการเดินเรื่องและเซ็นชื่อต่อเนื่องได้สะดวก
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+| ชื่อผู้ใช้ (Username) | ชื่อ-สกุล | ตำแหน่งในโรงเรียน | สิทธิ์ในระบบ |
+|---|---|---|---|
+| `admin` | นายแอดมิน ผู้ดูแลระบบ | ผู้ดูแลระบบ (System Admin) | จัดการผู้ใช้และกำหนดสิทธิ์ (`admin`) |
+| `director` | ดร.สมศักดิ์ รักการเรียน | ผู้อำนวยการโรงเรียน | อนุมัติ/สั่งการขั้นสุดท้าย (`executive`) |
+| `deputy_gen` | นายวิชัย ปัญญาดี | รอง ผอ. ฝ่ายบริหารงานทั่วไป | พิจารณากลั่นกรอง (`executive`) |
+| `deputy_acad` | นางพรทิพย์ วิชาการเลิศ | รอง ผอ. ฝ่ายวิชาการ | พิจารณากลั่นกรอง (`executive`) |
+| `head_sci` | นายอนันต์ ทดลองเก่ง | หัวหน้ากลุ่มสาระฯ วิทย์ | ตรวจสอบ/เกษียนชั้นต้น (`teacher`) |
+| `saraban` | น.ส.สุดา เอกสารดี | เจ้าหน้าที่งานสารบรรณ | ลงทะเบียนรับ-ส่ง คุมเลข (`saraban`) |
+| `teacher1` | นายเอกชัย ขยันสอน | ครูผู้สอน | ผู้สร้าง/เสนอเรื่อง (`teacher`) |
 
-## Setup
+---
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+## ✨ ฟังก์ชันและจุดเด่นของระบบ (Features)
 
-## Important Change with index.php
+1. **ระบบทะเบียนหนังสือราชการ (Document Registry):**
+   * แยกประเภท: หนังสือรับ (ภายนอก), หนังสือส่ง (ภายนอก), บันทึกข้อความ (ภายใน), คำสั่งโรงเรียน, หนังสือเวียน
+   * ระบบออกเลขทะเบียนรับ/ส่งภายในอัตโนมัติ (เช่น `0001/2569`)
+   * แนบไฟล์และเปิดอ่านเอกสารต้นฉบับ **PDF Viewer** ได้ในหน้าเดียวกัน
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+2. **ระบบเดินแฟ้มเสนอเกษียนหนังสือ (Visual Workflow Routing):**
+   * กำหนดเส้นทางการเสนอเอกสารได้ตามลำดับขั้น (Step 1 $\rightarrow$ Step 2 $\rightarrow$ Step 3)
+   * แถบ **Visual Stepper** แสดงความคืบหน้าของแฟ้มว่าอยู่ที่ใคร ใครเซ็นแล้ว ใครกำลังพิจารณา
+   * ระบบส่งคืนเรื่องให้แก้ไข (Return for Revision) พร้อมบันทึกเหตุผล
+   * Audit Trail บันทึกประวัติและ Timestamp ทุกกิจกรรม
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+3. **ระบบลงนามดิจิทัล (e-Signature):**
+   * **เซ็นสดบนหน้าจอ (HTML5 Canvas Signature Pad):** รองรับเมาส์, ทัชสกรีนแท็บเล็ต/ไอแพด ปากกา Stylus ลายเส้นคมชัด
+   * **ใช้ลายเซ็นในโปรไฟล์ (Saved Signature):** ตั้งค่าและบันทึกลายเซ็นเริ่มต้นไว้ในหน้าโปรไฟล์เพื่อใช้เซ็นแบบ 1-Click
+   * **ใบปะหน้าเกษียนหนังสือดิจิทัล:** แสดงกล่องข้อความเกษียน, ลายเซ็นดิจิทัล, วันที่เวลา, และ IP Address
+   * **Digital Verification & Hash:** ออกรหัส SHA-256 Verification Hash เพื่อตรวจสอบความถูกต้องของเอกสารย้อนหลังได้
 
-**Please** read the user guide for a better explanation of how CI4 works!
+4. **ระบบเอกสารขออนุมัติไปราชการและติดตาม (Official Travel & Tracking):**
+   * **แบบฟอร์มขออนุมัติไปราชการออนไลน์:** ระบุวัตถุประสงค์ สถานที่ วันที่เดินทาง คำนวณจำนวนวันอัตโนมัติ ยานพาหนะ การขอเบิกงบประมาณ รายชื่อผู้ร่วมเดินทาง และการจัดสอนแทน
+   * **สายการเสนอพิจารณา 3 ลำดับขั้น:** หัวหน้ากลุ่มสาระฯ (เห็นชอบ/ตรวจการฝากสอน) $\rightarrow$ รอง ผอ. (กลั่นกรอง/ตรวจงบ) $\rightarrow$ ผู้อำนวยการ (อนุมัติการเดินทาง)
+   * **ระบบติดตามสถานะ (Real-time Timeline):** ติดตามสถานะผ่าน Visual Stepper ตั้งแต่ยื่นขอ ระหว่างพิจารณา จนถึงอนุมัติ
+   * **ระบบรายงานผลหลังกลับจากราชการ (Duty Report):** บันทึกสรุปผลการปฏิบัติงาน พร้อมแนบภาพถ่ายกิจกรรมหรือไฟล์เกียรติบัตร (Certificate)
 
-## Repository Management
+5. **ระบบจัดการผู้ใช้งานและกำหนดสิทธิ์ (User & Role Management - RBAC):**
+   * **การแบ่งบทบาท 4 ระดับ:** ผู้ดูแลระบบ (`admin`), ผู้บริหาร (`executive`), เจ้าหน้าที่สารบรรณ (`saraban`), ครู/บุคลากร (`teacher`)
+   * **ระบบความปลอดภัย Filter Route:** มี `AdminFilter` คุ้มกันเส้นทางระบบแอดมิน ป้องกันการเข้าถึงโดยไม่ได้รับอนุญาต
+   * **หน้าบริหารจัดการผู้ใช้:** ค้นหา กรองตามบทบาท/ฝ่ายงาน เพิ่ม แก้ไข ปรับบทบาท เปิด/ระงับการใช้งานบัญชี และรีเซตรหัสผ่าน
+   * **ตาราง Role & Permission Matrix:** แสดงการแมปสิทธิ์อย่างละเอียดในทุกโมดูลของระบบ
+   * **การคุ้มครอง Audit Trail:** ป้องกันการลบบัญชีผู้ใช้ที่มีประวัติเอกสารหรือลายเซ็นในระบบ เพื่อรักษาความถูกต้องของประวัติราชการ
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+---
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+## 🛠️ คำสั่ง Docker ที่เป็นประโยชน์
 
-## Server Requirements
-
-PHP version 8.2 or higher is required, with the following extensions installed:
-
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
-
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
-
-Additionally, make sure that the following extensions are enabled in your PHP:
-
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+* **เริ่มการทำงาน:**
+  ```bash
+  docker compose up -d
+  ```
+* **หยุดการทำงาน:**
+  ```bash
+  docker compose down
+  ```
+* **ตรวจสอบสถานะคอนเทนเนอร์:**
+  ```bash
+  docker compose ps
+  ```
+* **ดู Log การทำงาน:**
+  ```bash
+  docker compose logs -f web
+  ```
+* **เข้า Spark CLI ในคอนเทนเนอร์:**
+  ```bash
+  docker exec -it eoffice_web php spark
+  ```
