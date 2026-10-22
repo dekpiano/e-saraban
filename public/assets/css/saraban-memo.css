@@ -355,17 +355,18 @@ body {
     margin-top: 48pt;
     display: flex;
     justify-content: flex-start;
-    padding-left: 9.0cm; /* แนวกึ่งกลางของชื่อ-ตำแหน่งตรงแนวดิ่งกับกึ่งกลางคำว่า 'ข้อความ' */
+    padding-left: 7.5cm; /* วงเล็บเปิด '(' ของชื่อ-นามสกุล อยู่ตรงแนวดิ่งกับคำว่า 'ข้อความ' (ตัว 'ข') พอดีเป๊ะ */
 }
 
 .signature-box {
-    transform: translateX(-50%); /* จัดกึ่งกลางบล็อกชื่อ-ตำแหน่งให้อยู่ตรงแนว 9.0cm พอดีเป๊ะ */
-    width: auto;
+    transform: none; /* ไม่ใช้ transform เพื่อให้วงเล็บเปิด '(' ชิดตรงแนว 7.5cm แน่นอน */
+    width: -moz-fit-content;
+    width: fit-content;
     min-width: 0;
     max-width: 8.5cm;
     display: inline-flex;
     flex-direction: column;
-    align-items: center;
+    align-items: center; /* จัดตำแหน่งลายเซ็นและตำแหน่งครูให้อยู่กึ่งกลางชื่อ */
     text-align: center;
 }
 
@@ -775,13 +776,14 @@ body {
 
     .signature-section {
         margin-top: 48pt !important;
-        padding-left: 9.0cm !important;
+        padding-left: 7.5cm !important;
         justify-content: flex-start !important;
     }
 
     .signature-box {
-        transform: translateX(-50%) !important;
-        width: auto !important;
+        transform: none !important;
+        width: -moz-fit-content !important;
+        width: fit-content !important;
         min-width: 0 !important;
         max-width: 8.5cm !important;
         display: inline-flex !important;
@@ -796,5 +798,6 @@ body {
         line-height: var(--line-height) !important;
         text-align: center !important;
         white-space: nowrap !important;
+        width: 100% !important;
     }
 }

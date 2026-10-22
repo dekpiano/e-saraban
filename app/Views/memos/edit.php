@@ -133,7 +133,7 @@
                     <div class="signature-line" id="signatureLine" style="cursor: pointer; min-height: 40px; display: flex; align-items: center; justify-content: center;" onclick="openSignatureModal()" title="คลิกเพื่อเลือกหรือวาดลายเซ็นออนไลน์">
                         <img id="signaturePreviewImg" class="signature-img" src="<?= !empty($document['creator_signature']) ? base_url($document['creator_signature']) : '' ?>" style="<?= !empty($document['creator_signature']) ? 'display: block;' : 'display: none;' ?> max-height: 55px;" alt="ลายเซ็นออนไลน์">
                         <span id="signatureHintText" class="no-print" style="<?= !empty($document['creator_signature']) ? 'display: none;' : 'display: inline-block;' ?> font-size: 11px; color: #94a3b8; border: 1px dashed #cbd5e1; border-radius: 4px; padding: 2px 8px; font-family: 'K2D', sans-serif;">
-                            <i class="bx bx-pen me-1"></i> คลิกเพื่อเพิ่มลายเซ็นออนไลน์ (หรือเว้นว่างไว้ลงนามสด)
+                            <i class="bx bx-pen me-1"></i> คลิกเพิ่มลายเซ็นออนไลน์
                         </span>
                     </div>
                     <div class="sign-name" contenteditable="true" style="color: #000;">( <?= esc(($user['prefix'] ?? '') . ($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?> )</div>

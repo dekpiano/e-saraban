@@ -186,7 +186,7 @@
                             style="display: none; max-height: 55px;" alt="ลายเซ็นออนไลน์">
                         <span id="signatureHintText" class="no-print"
                             style="font-size: 11px; color: #94a3b8; border: 1px dashed #cbd5e1; border-radius: 4px; padding: 2px 8px; font-family: 'K2D', sans-serif;">
-                            <i class="bx bx-pen me-1"></i> คลิกเพื่อเพิ่มลายเซ็นออนไลน์ (หรือเว้นว่างไว้ลงนามสด)
+                            <i class="bx bx-pen me-1"></i> คลิกเพิ่มลายเซ็นออนไลน์
                         </span>
                     </div>
                     <div class="sign-name" contenteditable="true">( <?= esc(($user['prefix'] ?? '') . ($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?> )</div>
