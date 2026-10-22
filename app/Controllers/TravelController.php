@@ -97,7 +97,16 @@ class TravelController extends BaseController
     // ฟอร์มยื่นขออนุมัติไปราชการใหม่
     public function create()
     {
-        $userId        = session()->get('user_id');
+        $userId = (int)session()->get('user_id');
+        $memoId = (int)$this->request->getGet('memo_id');
+        if ($memoId <= 0) {
+            return redirect()->to('/admin/memos/create?purpose=travel_request')->with('warning', 'ก่อนยื่นคำขอไปราชการ กรุณาสร้างบันทึกข้อความก่อน');
+        }
+        $memo = (new \App\Models\DocumentModel())->find($memoId);
+        $isOfficer = in_array(session()->get('role'), ['super_admin', 'admin', 'saraban', 'executive'], true);
+        if (!$memo || ($memo['doc_type'] ?? '') !== 'internal' || (!$isOfficer && (int)$memo['created_by'] !== $userId)) {
+            return redirect()->to('/admin/memos/create?purpose=travel_request')->with('error', 'ไม่พบบันทึกข้อความที่ถูกต้อง หรือคุณไม่มีสิทธิ์ใช้บันทึกข้อความฉบับนี้');
+        }
         $user          = $this->userModel->getUserWithDetails($userId);
         $allUsers      = $this->userModel->getAllActiveUsers();
         $personnelList = $this->userModel->getPersonnelForSelection();
@@ -108,6 +117,8 @@ class TravelController extends BaseController
             'allUsers'      => $allUsers,
             'personnelList' => $personnelList,
             'nextDocNo'     => $nextDocNo,
+            'memoId'        => $memoId,
+            'memo'          => $memo,
         ]);
     }
 
@@ -117,6 +128,28 @@ class TravelController extends BaseController
         $sessionUserId = session()->get('user_id');
         $sessionRole   = session()->get('role');
         $isOfficer     = in_array($sessionRole, ['super_admin', 'admin', 'saraban', 'executive'], true);
+        $memoId        = (int)$this->request->getPost('memo_id');
+        $memo          = $memoId > 0 ? (new \App\Models\DocumentModel())->find($memoId) : null;
+        $dbForMemo     = \Config\Database::connect();
+        if ($memoId <= 0 || !$memo || ($memo['doc_type'] ?? '') !== 'internal' || (!$isOfficer && (int)$memo['created_by'] !== (int)$sessionUserId)) {
+            $error = 'กรุณาจัดทำและบันทึกข้อความต้นเรื่องก่อนยื่นคำขอไปราชการ';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $error, 'redirect' => base_url('admin/memos/create?purpose=travel_request')])->setStatusCode(400);
+            }
+            return redirect()->to('/admin/memos/create?purpose=travel_request')->with('error', $error);
+        }
+        if (!$dbForMemo->tableExists('document_links')) {
+            return redirect()->back()->withInput()->with('error', 'ยังไม่ได้ติดตั้งตารางเชื่อมโยงเอกสาร กรุณาติดตั้ง document_links ก่อน');
+        }
+        $requestMemoLink = (new \App\Models\DocumentLinkModel())->where('source_type', 'document')
+            ->where('source_id', (int)$memoId)
+            ->where('target_type', 'travel_request')
+            ->where('target_id', 0)
+            ->where('relation_type', 'request_memo')
+            ->first();
+        if (!$requestMemoLink) {
+            return redirect()->to('/admin/memos/create?purpose=travel_request')->with('error', 'บันทึกข้อความฉบับนี้ไม่ได้จัดทำสำหรับคำขอไปราชการ กรุณาสร้างบันทึกข้อความต้นเรื่องก่อน');
+        }
 
         // ตรวจสอบว่าเป็นการบันทึกแทนครู/บุคลากรหรือไม่
         $effectiveUserId = $sessionUserId;
@@ -263,6 +296,16 @@ class TravelController extends BaseController
         ];
 
         $travelId = $this->travelModel->insert($travelData);
+        if ($travelId) {
+            $linkUpdated = (new \App\Models\DocumentLinkModel())->update((int)$requestMemoLink['id'], [
+                'target_id'  => (int)$travelId,
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+            if (!$linkUpdated) {
+                $this->travelModel->delete($travelId);
+                return redirect()->back()->withInput()->with('error', 'ไม่สามารถเชื่อมบันทึกข้อความกับคำขอได้ ระบบยกเลิกการบันทึกคำขอนี้แล้ว กรุณาลองใหม่');
+            }
+        }
 
         // Optional School Routing Steps (Only inserted if valid users provided)
         $routeUsers = $this->request->getPost('route_users');
@@ -305,6 +348,36 @@ class TravelController extends BaseController
     }
 
     // ดูรายละเอียด & ติดตามความคืบหน้าคำขอ
+    /**
+     * พิมพ์ชุดเอกสารรวม: บันทึกข้อความที่เกี่ยวข้องและรายละเอียดคำขอไปราชการ
+     */
+    public function printBundle($id)
+    {
+        $travel = $this->travelModel->getRequestWithDetails($id);
+        if (!$travel) {
+            return redirect()->to('/admin/travel')->with('error', 'ไม่พบข้อมูลคำขอไปราชการ');
+        }
+
+        $memos = [];
+        $db = \Config\Database::connect();
+        if ($db->tableExists('document_links')) {
+            $links = (new \App\Models\DocumentLinkModel())->getMemosForTravel($id);
+            $documentModel = new \App\Models\DocumentModel();
+            foreach ($links as $link) {
+                $memo = $documentModel->getDocumentDetails((int)$link['id']);
+                if ($memo && ($memo['doc_type'] ?? '') === 'internal') {
+                    $memo['relation_type'] = $link['relation_type'] ?? 'related';
+                    $memos[] = $memo;
+                }
+            }
+        }
+
+        return view('travel/print_bundle', [
+            'travel' => $travel,
+            'memos' => $memos,
+        ]);
+    }
+
     public function view($id)
     {
         $userId  = session()->get('user_id');
@@ -316,6 +389,11 @@ class TravelController extends BaseController
 
         $routes = $this->routeModel->getRoutesForTravel($id);
         $logs   = $this->logModel->getLogsForTravel($id);
+        $linkedMemos = [];
+        $db = \Config\Database::connect();
+        if ($db->tableExists('document_links')) {
+            $linkedMemos = (new \App\Models\DocumentLinkModel())->getMemosForTravel($id);
+        }
 
         // Check if it is current user's turn to approve
         $canSign = false;
@@ -335,6 +413,7 @@ class TravelController extends BaseController
             'logs'         => $logs,
             'canSign'      => $canSign,
             'currentRoute' => $currentRoute,
+            'linkedMemos'  => $linkedMemos,
         ]);
     }
 
@@ -900,7 +979,7 @@ class TravelController extends BaseController
     private function _uploadFileToServer($file, $remotePath, $originalName)
     {
         $uploadUrl = env('upload.server.url') ?: 'https://skj.nsnpao.go.th/upload.php';
-        $token     = env('upload.server.token') ?: 'Dekpiano2025!!';
+        $token     = (string) env('upload.server.token');
 
         $filePath   = $file->getTempName();
         $fileSize   = filesize($filePath);
@@ -1024,7 +1103,7 @@ class TravelController extends BaseController
     private function _deleteFileFromServer($remoteFilePath)
     {
         $deleteUrl = env('upload.server.delete.url') ?: 'https://skj.nsnpao.go.th/delete.php';
-        $token     = env('upload.server.token') ?: 'Dekpiano2025!!';
+        $token     = (string) env('upload.server.token');
 
         try {
             $client = \Config\Services::curlrequest();

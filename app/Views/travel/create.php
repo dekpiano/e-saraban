@@ -134,6 +134,11 @@
             <div class="card-body">
                 <form action="<?= base_url('admin/travel/store') ?>" method="POST" enctype="multipart/form-data">
                     <?= csrf_field() ?>
+                    <input type="hidden" name="memo_id" value="<?= (int)($memoId ?? 0) ?>">
+                    <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+                        <div><strong><i class="bx bx-file me-1"></i>บันทึกข้อความต้นเรื่อง</strong><div class="small mt-1"><?= esc(($memo['doc_no'] ?? '-') . ' · ' . ($memo['title'] ?? '-')) ?></div></div>
+                        <a class="btn btn-sm btn-outline-primary" target="_blank" href="<?= base_url('admin/memos/' . (int)($memoId ?? 0)) ?>">เปิดบันทึกข้อความ</a>
+                    </div>
 
                     <!-- คำชี้แจงการกรอกข้อมูล -->
                     <div class="alert alert-primary d-flex align-items-center mb-4 py-2 px-3 shadow-sm border-0" style="background: #e7e7ff; color: #43449e;">

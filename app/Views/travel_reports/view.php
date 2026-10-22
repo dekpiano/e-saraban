@@ -31,6 +31,9 @@
                 <h4 class="fw-bold mb-1 text-white" style="font-family: 'K2D', sans-serif;">
                     รายงานผล: <?= esc($travel['title']) ?>
                 </h4>
+                <?php if (!empty($isLoggedIn)): ?>
+                    <div class="mt-2 mb-2"><a href="<?= base_url('admin/travel/' . (int)$travel['id'] . '/print-bundle') ?>" target="_blank" class="btn btn-sm btn-light"><i class="bx bx-printer me-1"></i>พิมพ์ชุดบันทึกข้อความและรายงานผล</a></div>
+                <?php endif; ?>
                 <div class="small text-white opacity-90 d-flex flex-wrap align-items-center gap-3 mt-1">
                     <span><i class="bx bx-user me-1"></i> <?= esc($travel['prefix'] . $travel['first_name'] . ' ' . $travel['last_name']) ?> (<?= esc($travel['position_name']) ?>)</span>
                     <span><i class="bx bx-map-pin me-1"></i> <?= esc($travel['destination']) ?> (<?= esc($travel['province']) ?>)</span>
@@ -64,6 +67,27 @@
                 </a>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div><h5 class="mb-1 fw-bold"><i class="bx bx-file me-2 text-primary"></i>บันทึกข้อความที่เกี่ยวข้อง</h5><small class="text-muted">เอกสารหลักที่เชื่อมกับคำขอและรายงานผลนี้</small></div>
+        <a href="<?= base_url('admin/travel/' . (int)$travel['id'] . '/print-bundle') ?>" target="_blank" class="btn btn-outline-primary btn-sm"><i class="bx bx-printer me-1"></i>พิมพ์ชุดเอกสาร</a>
+    </div>
+    <div class="card-body">
+        <?php if (!empty($linkedMemos)): ?>
+            <div class="list-group list-group-flush">
+                <?php foreach ($linkedMemos as $memo): ?>
+                    <a href="<?= base_url('admin/memos/' . (int)$memo['id']) ?>" class="list-group-item list-group-item-action px-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div><div class="fw-semibold"><?= esc($memo['title'] ?? '-') ?></div><small class="text-muted"><?= esc($memo['doc_no'] ?? '-') ?></small></div>
+                        <span class="badge bg-label-secondary"><?= esc(($memo['relation_type'] ?? '') === 'report_memo' ? 'บันทึกข้อความรายงานผล' : 'บันทึกข้อความต้นเรื่อง') ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <div class="text-muted small">ไม่พบบันทึกข้อความที่เชื่อมโยงกับรายการนี้</div>
+        <?php endif; ?>
     </div>
 </div>
 

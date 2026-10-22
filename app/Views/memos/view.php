@@ -60,7 +60,7 @@
         width: 21cm !important;
         height: auto !important;
         min-height: 29.7cm !important;
-        padding: 3cm 2cm 2cm 3cm !important;
+        padding: 1.5cm 2cm 2cm 3cm !important;
         margin: 0 !important;
         position: relative !important;
         left: 0 !important;
@@ -71,6 +71,9 @@
 </style>
 
 <div class="row">
+    <?php if (!empty($linkedTravel)): ?>
+        <div class="col-12 no-print"><div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><div><strong><i class="bx bx-link me-1"></i>เชื่อมโยงกับคำขอไปราชการ</strong><div class="small mt-1"><?= esc($linkedTravel['doc_no']) ?> · <?= esc($linkedTravel['title']) ?> · สถานะ <?= esc($linkedTravel['status']) ?></div></div><a class="btn btn-sm btn-outline-primary" href="<?= base_url('admin/travel/' . (int)$linkedTravel['id']) ?>">เปิดคำขอไปราชการ <i class="bx bx-link-external ms-1"></i></a></div></div>
+    <?php endif; ?>
     <!-- Main Memo Display (A4 Canvas) -->
     <div class="col-lg-8 col-xl-8">
 
@@ -147,7 +150,7 @@
                             <?php endif; ?>
                         </div>
                         <div class="sign-name">( <?= esc(($creator['prefix'] ?? '') . ($creator['first_name'] ?? '') . ' ' . ($creator['last_name'] ?? '')) ?> )</div>
-                        <div class="sign-position">ตำแหน่ง <?= esc($creator['position_name'] ?? 'ครูผู้สอน') ?><br><?= esc($creator['department_name'] ?? '') ?></div>
+                        <div class="sign-position">ตำแหน่ง <?= esc($creator['position_name'] ?? 'ครูผู้สอน') ?></div>
                     </div>
                 </div>
 

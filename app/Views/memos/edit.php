@@ -14,8 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=K2D:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- ฟอนต์ TH Sarabun New ฝังแบบ Base64 -->
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/fonts/sarabun-embedded.css') ?>">
+    <!-- ฟอนต์ TH SarabunIT๙ & TH Sarabun New ฝังแบบ Base64 -->
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/fonts/sarabun-embedded.css?v=' . (file_exists(FCPATH . 'assets/vendor/fonts/sarabun-embedded.css') ? filemtime(FCPATH . 'assets/vendor/fonts/sarabun-embedded.css') : time())) ?>">
 
     <!-- Boxicons สำหรับปุ่มควบคุม -->
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -137,7 +137,7 @@
                         </span>
                     </div>
                     <div class="sign-name" contenteditable="true" style="color: #000;">( <?= esc(($user['prefix'] ?? '') . ($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?> )</div>
-                    <div class="sign-position" contenteditable="true" style="color: #000;">ตำแหน่ง <?= esc($user['position_name'] ?? 'ครูผู้สอน') ?><br><?= esc($user['department_name'] ?? '') ?></div>
+                    <div class="sign-position" contenteditable="true" style="color: #000;">ตำแหน่ง <?= esc($user['position_name'] ?? 'ครูผู้สอน') ?></div>
                 </div>
             </div>
         </div>
@@ -429,7 +429,7 @@
         document.getElementById('hiddenContent').value = bodyContent;
 
         if (!title) {
-            alert('กรุณาระบุชื่อเรื่องบันทึกข้อความ');
+            AppAlert.warning('กรุณาระบุชื่อเรื่องบันทึกข้อความ');
             document.getElementById('field_title').focus();
             return;
         }
@@ -568,7 +568,7 @@
 
     function applyDrawnSignature() {
         if (!hasSigDrawn) {
-            alert('กรุณาวาดลายเซ็นบนกระดานก่อนกดใช้');
+            AppAlert.warning('กรุณาวาดลายเซ็นบนกระดานก่อนกดใช้');
             return;
         }
         const dataUrl = sigCanvas.toDataURL('image/png');
@@ -669,5 +669,7 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<?= base_url('assets/js/app-swal.js?v=' . (file_exists(FCPATH . 'assets/js/app-swal.js') ? filemtime(FCPATH . 'assets/js/app-swal.js') : time())) ?>"></script>
 </body>
 </html>

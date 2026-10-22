@@ -35,6 +35,13 @@
     <div class="col-lg-10 col-12">
         <form action="<?= base_url('admin/travel-reports/store') ?>" method="POST" enctype="multipart/form-data">
             <?= csrf_field() ?>
+            <input type="hidden" name="memo_id" value="<?= (int)($memoId ?? 0) ?>">
+            <?php if (!empty($memo)): ?>
+                <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+                    <div><strong><i class="bx bx-file me-1"></i>บันทึกข้อความรายงานผล</strong><div class="small mt-1"><?= esc(($memo['doc_no'] ?? '-') . ' · ' . ($memo['title'] ?? '-')) ?></div></div>
+                    <a class="btn btn-sm btn-outline-primary" target="_blank" href="<?= base_url('admin/memos/' . (int)$memoId) ?>">เปิดบันทึกข้อความ</a>
+                </div>
+            <?php endif; ?>
 
             <!-- Card 1: เลือกคำขอไปราชการต้นเรื่อง (Official Reference) -->
             <div class="card border mb-4 shadow-sm" style="border-radius: 0.85rem;">
@@ -75,6 +82,11 @@
                             <small class="form-text text-muted">
                                 <i class="bx bx-info-circle me-1"></i> เลือกรรายการคำขอที่ต้องการ ระบบจะดึงข้อมูลหนังสือต้นเรื่องมาแสดงโดยอัตโนมัติ
                             </small>
+                            <?php if (empty($memoId)): ?>
+                                <a id="createMemoFirstButton" href="<?= !empty($selectedTravel) ? base_url('admin/memos/create?purpose=travel_report&travel_id=' . (int)$selectedTravel['id']) : '#' ?>" class="btn btn-outline-primary btn-sm mt-2 <?= empty($selectedTravel) ? 'disabled' : '' ?>">
+                                    <i class="bx bx-file-blank me-1"></i>สร้างบันทึกข้อความรายงานผลก่อน
+                                </a>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
 
@@ -212,6 +224,11 @@
 // Dynamic fetch of travel request info
 function handleTravelSelectChange(travelId) {
     const card = document.getElementById('referenceCard');
+    const memoButton = document.getElementById('createMemoFirstButton');
+    if (memoButton) {
+        memoButton.href = travelId ? '<?= base_url('admin/memos/create?purpose=travel_report&travel_id=') ?>' + encodeURIComponent(travelId) : '#';
+        memoButton.classList.toggle('disabled', !travelId);
+    }
     if (!travelId) {
         card.classList.add('d-none');
         return;

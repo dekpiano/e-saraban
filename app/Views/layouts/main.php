@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=K2D:wght@200;300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Official Thai Government Font: TH Sarabun PSK & TH Sarabun New (Embedded Data-URI) -->
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/fonts/sarabun-embedded.css') ?>" />
+    <!-- Official Thai Government Font: TH SarabunIT๙, TH Sarabun PSK & TH Sarabun New (Embedded Data-URI) -->
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/fonts/sarabun-embedded.css?v=' . (file_exists(FCPATH . 'assets/vendor/fonts/sarabun-embedded.css') ? filemtime(FCPATH . 'assets/vendor/fonts/sarabun-embedded.css') : time())) ?>" />
 
     <!-- Boxicons Icons -->
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
@@ -411,46 +411,79 @@
                     }
                     return '';
                 };
+
+                // คำนวณจำนวนเอกสารและสถานะค้างสำหรับ Badge เมนูตามสิทธิ์ผู้ใช้งาน
+                $userId   = (int) (session()->get('user_id') ?? 0);
+                $userRole = (string) (session()->get('role') ?? '');
+                $pendingSignCount    = 0;
+                $pendingSarabanCount = 0;
+
+                if ($userId > 0) {
+                    try {
+                        $db = \Config\Database::connect();
+                        // 1. งานรอฉันลงนาม/เกษียน
+                        $pendingSignCount = $db->table('document_routes')
+                            ->join('documents', 'documents.id = document_routes.document_id')
+                            ->where('document_routes.user_id', $userId)
+                            ->where('document_routes.status', 'pending')
+                            ->where('documents.current_step = document_routes.step_order')
+                            ->where('documents.status', 'routing')
+                            ->countAllResults();
+
+                        // 2. สำหรับสารบรรณ / แอดมิน: บันทึกข้อความรอตรวจและออกเลข
+                        if (in_array($userRole, ['saraban', 'admin', 'super_admin'], true)) {
+                            $pendingSarabanCount = $db->table('documents')
+                                ->where('doc_type', 'internal')
+                                ->where('status', 'pending_saraban')
+                                ->countAllResults();
+                        }
+                    } catch (\Throwable $e) {
+                        // ป้องกันกรณี database เกิด exception
+                    }
+                }
                 ?>
                 <?php if (session()->get('logged_in')): ?>
                 <ul class="menu-inner py-1">
-                    <!-- หน้าแรกสาธารณะ (Public Portal) -->
-                    <li class="menu-item">
-                        <a href="<?= base_url('/') ?>" class="menu-link text-primary" target="_blank">
-                            <i class="menu-icon tf-icons bx bx-globe"></i>
-                            <div>หน้าแรกสาธารณะ (เปิดดู)</div>
-                        </a>
-                    </li>
-
                     <!-- Dashboard -->
                     <li class="menu-item <?= $isActiveMenu('dashboard', ['', 'dashboard']) ?>">
                         <a href="<?= base_url('admin/dashboard') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                            <i class="menu-icon tf-icons bx bx-home-circle text-primary"></i>
                             <div>แดชบอร์ดภาพรวม</div>
                         </a>
                     </li>
 
-                    <li class="menu-header small text-uppercase">
-                        <span class="menu-header-text">งานสารบรรณ & เดินเรื่อง</span>
-                    </li>
-
-                    <!-- รอฉันลงนาม -->
-                    <li class="menu-item <?= $isActiveMenu('documents_inbox', ['documents/inbox', 'documents/inbox/*']) ?>">
-                        <a href="<?= base_url('admin/documents/inbox') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-edit-alt text-warning"></i>
-                            <div>รอฉันลงนาม/เกษียน</div>
+                    <li class="menu-item <?= $isActiveMenu('center', ['center', 'center/*']) ?>">
+                        <a href="<?= base_url('admin/center') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-search-alt text-info"></i>
+                            <div>ศูนย์กลางค้นหาเอกสาร</div>
                         </a>
                     </li>
 
-                    <!-- หนังสือที่ฉันเป็นผู้สร้าง -->
+                    <!-- ==========================================
+                         งานของฉันและการติดตาม (Personal Workspace)
+                         ========================================== -->
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">งานของฉันและการติดตาม</span>
+                    </li>
+                    <li class="menu-item <?= $isActiveMenu('documents_inbox', ['documents/inbox', 'documents/inbox/*']) ?>">
+                        <a href="<?= base_url('admin/documents/inbox') ?>" class="menu-link d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <i class="menu-icon tf-icons bx bx-edit-alt text-warning"></i>
+                                <div>รอฉันลงนาม / เกษียน</div>
+                            </div>
+                            <?php if ($pendingSignCount > 0): ?>
+                                <span class="badge rounded-pill bg-danger text-white fw-bold px-2 py-1 shadow-sm" style="font-size: 0.72rem;">
+                                    <?= $pendingSignCount ?>
+                                </span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
                     <li class="menu-item <?= $isActiveMenu('documents_my', ['documents/my', 'documents/my/*']) ?>">
                         <a href="<?= base_url('admin/documents/my') ?>" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-send text-info"></i>
-                            <div>หนังสือที่ฉันเป็นผู้สร้าง</div>
+                            <div>หนังสือที่ฉันสร้าง / ติดตาม</div>
                         </a>
                     </li>
-
-                    <!-- หนังสือที่ฉันลงนามแล้ว -->
                     <li class="menu-item <?= $isActiveMenu('documents_signed', ['documents/signed', 'documents/signed/*']) ?>">
                         <a href="<?= base_url('admin/documents/signed') ?>" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-check-double text-success"></i>
@@ -458,75 +491,207 @@
                         </a>
                     </li>
 
-                    <!-- ทะเบียนหนังสือทั้งหมด (รวมถึงการดูรายละเอียดเอกสารและสร้างเอกสาร) -->
-                    <li class="menu-item <?= (!empty($customActive)) ? ($customActive === 'documents' ? 'active' : '') : (($currentUri === 'documents' || (str_starts_with($currentUri, 'documents/') && !in_array($currentUri, ['documents/inbox', 'documents/my', 'documents/signed']) && !str_starts_with($currentUri, 'documents/inbox/') && !str_starts_with($currentUri, 'documents/my/') && !str_starts_with($currentUri, 'documents/signed/'))) ? 'active' : '') ?>">
-                        <a href="<?= base_url('admin/documents') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-folder"></i>
-                            <div>ทะเบียนหนังสือทั้งหมด</div>
-                        </a>
-                    </li>
-
-                    <!-- หมวดหมู่: บันทึกข้อความ (ภายในโรงเรียน) -->
+                    <!-- ==========================================
+                         ประเภทหนังสือราชการ (6 ชนิดตามระเบียบงานสารบรรณ)
+                         ========================================== -->
                     <li class="menu-header small text-uppercase">
-                        <span class="menu-header-text fw-bold text-primary">
-                            <i class="bx bx-notepad me-1"></i> บันทึกข้อความ (ภายใน)
-                        </span>
+                        <span class="menu-header-text">ประเภทหนังสือราชการ (๖ ชนิด)</span>
                     </li>
 
-                    <!-- เขียน/ออกเลขบันทึกข้อความ -->
-                    <li class="menu-item <?= $isActiveMenu('memos_create', ['memos/create', 'memos/create/*']) ?>">
-                        <a href="<?= base_url('admin/memos/create') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-edit text-primary"></i>
-                            <div class="fw-semibold">เขียน/ออกเลขบันทึกข้อความ</div>
+                    <!-- 1. หนังสือภายนอก -->
+                    <li class="menu-item <?= str_starts_with($currentUri, 'documents') && !in_array($currentUri, ['documents/inbox', 'documents/my', 'documents/signed']) && !str_starts_with($currentUri, 'documents/inbox/') && !str_starts_with($currentUri, 'documents/my/') && !str_starts_with($currentUri, 'documents/signed/') && (string) service('request')->getGet('type') !== 'order' ? 'open' : '' ?>">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-mail-send text-info"></i>
+                            <div>1. หนังสือภายนอก</div>
                         </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item <?= $currentUri === 'documents' && (string) service('request')->getGet('type') === 'in' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/documents?type=in') ?>" class="menu-link">
+                                    <div>ทะเบียนหนังสือรับ</div>
+                                </a>
+                            </li>
+                            <li class="menu-item <?= $currentUri === 'documents' && (string) service('request')->getGet('type') === 'out' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/documents?type=out') ?>" class="menu-link">
+                                    <div>ทะเบียนหนังสือส่ง</div>
+                                </a>
+                            </li>
+                            <li class="menu-item <?= $currentUri === 'documents/create' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/documents/create') ?>" class="menu-link">
+                                    <div>ลงทะเบียน / ส่งหนังสือ</div>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
 
-                    <!-- ทะเบียนบันทึกข้อความ (รวมถึงการดูและแก้ไขบันทึกข้อความ) -->
-                    <li class="menu-item <?= (!empty($customActive)) ? ($customActive === 'memos' ? 'active' : '') : (($currentUri === 'memos' || (str_starts_with($currentUri, 'memos/') && $currentUri !== 'memos/create' && !str_starts_with($currentUri, 'memos/create/'))) ? 'active' : '') ?>">
-                        <a href="<?= base_url('admin/memos') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-collection text-info"></i>
-                            <div>ทะเบียนบันทึกข้อความ</div>
+                    <!-- 2. หนังสือภายใน -->
+                    <li class="menu-item <?= str_starts_with($currentUri, 'memos') ? 'open' : '' ?>">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-notepad text-primary"></i>
+                            <div>2. หนังสือภายใน</div>
                         </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item <?= $isActiveMenu('memos_create', ['memos/create', 'memos/create/*']) ?>">
+                                <a href="<?= base_url('admin/memos/create') ?>" class="menu-link">
+                                    <div>เขียนบันทึกข้อความ</div>
+                                </a>
+                            </li>
+                            <li class="menu-item <?= ($currentUri === 'memos' || preg_match('#^memos/[0-9]+$#', $currentUri)) ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/memos') ?>" class="menu-link">
+                                    <div>ทะเบียนบันทึกข้อความ</div>
+                                </a>
+                            </li>
+                            <?php if (in_array($userRole, ['saraban', 'admin', 'super_admin'], true)): ?>
+                            <li class="menu-item <?= $currentUri === 'memos/saraban-inbox' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/memos/saraban-inbox') ?>" class="menu-link d-flex justify-content-between align-items-center">
+                                    <div>รอตรวจและออกเลข (สารบรรณ)</div>
+                                    <?php if ($pendingSarabanCount > 0): ?>
+                                        <span class="badge rounded-pill bg-warning text-dark fw-bold px-2 py-1 shadow-sm" style="font-size: 0.72rem;">
+                                            <?= $pendingSarabanCount ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </a>
+                            </li>
+                            <?php endif; ?>
+                        </ul>
                     </li>
 
+                    <!-- 3. หนังสือประทับตรา -->
+                    <li class="menu-item">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle text-muted">
+                            <i class="menu-icon tf-icons bx bx-stamp text-secondary"></i>
+                            <div>3. หนังสือประทับตรา</div>
+                            <span class="badge bg-secondary text-white ms-auto" style="font-size: 0.65rem;">เร็ว ๆ นี้</span>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item disabled">
+                                <a href="javascript:void(0)" class="menu-link">
+                                    <div>รอเปิดใช้งานระบบ</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- 4. หนังสือสั่งการ -->
+                    <li class="menu-item <?= $currentUri === 'documents' && (string) service('request')->getGet('type') === 'order' ? 'open' : '' ?>">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-file text-warning"></i>
+                            <div>4. หนังสือสั่งการ</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item <?= $currentUri === 'documents' && (string) service('request')->getGet('type') === 'order' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/documents?type=order') ?>" class="menu-link">
+                                    <div>ทะเบียนคำสั่งโรงเรียน</div>
+                                </a>
+                            </li>
+                            <li class="menu-item disabled">
+                                <a href="javascript:void(0)" class="menu-link text-muted">
+                                    <div>ระเบียบ / ข้อบังคับ (เร็ว ๆ นี้)</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- 5. หนังสือประชาสัมพันธ์ -->
+                    <li class="menu-item">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle text-muted">
+                            <i class="menu-icon tf-icons bx bx-broadcast text-success"></i>
+                            <div>5. หนังสือประชาสัมพันธ์</div>
+                            <span class="badge bg-secondary text-white ms-auto" style="font-size: 0.65rem;">เร็ว ๆ นี้</span>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item disabled">
+                                <a href="javascript:void(0)" class="menu-link">
+                                    <div>ประกาศ / แถลงการณ์ (เร็ว ๆ นี้)</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- 6. หนังสือที่เจ้าหน้าที่ทำขึ้นหรือรับไว้เป็นหลักฐาน -->
+                    <li class="menu-item">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle text-muted">
+                            <i class="menu-icon tf-icons bx bx-badge-check text-secondary"></i>
+                            <div>6. หนังสือหลักฐานราชการ</div>
+                            <span class="badge bg-secondary text-white ms-auto" style="font-size: 0.65rem;">เร็ว ๆ นี้</span>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item disabled">
+                                <a href="javascript:void(0)" class="menu-link">
+                                    <div>รายงานการประชุม / รับรอง (เร็ว ๆ นี้)</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- ==========================================
+                         คำขอและงานดำเนินการ (e-Requests & Workflows)
+                         ========================================== -->
                     <li class="menu-header small text-uppercase">
-                        <span class="menu-header-text">ไปราชการ & ติดตาม</span>
+                        <span class="menu-header-text">คำขอและงานดำเนินการ</span>
                     </li>
 
-                    <!-- ยื่นขอไปราชการใหม่ -->
-                    <li class="menu-item <?= $isActiveMenu('travel_create', ['travel/create', 'travel/create/*']) ?>">
-                        <a href="<?= base_url('admin/travel/create') ?>" class="menu-link">
+                    <!-- ระบบคำขออนุมัติและอนุญาต (รวมศูนย์ ไม่ซ้ำซ้อน) -->
+                    <li class="menu-item <?= (str_starts_with($currentUri, 'approvals') && !str_contains($currentUri, 'settings')) ? 'open' : '' ?>">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-check-square text-success"></i>
+                            <div>คำขออนุมัติ / ขออนุญาต</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item <?= $currentUri === 'approvals/create' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/approvals/create') ?>" class="menu-link">
+                                    <div>ยื่นคำขอใหม่</div>
+                                </a>
+                            </li>
+                            <li class="menu-item <?= $currentUri === 'approvals' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/approvals') ?>" class="menu-link">
+                                    <div>รายการคำขอทั้งหมด</div>
+                                </a>
+                            </li>
+                            <?php if (in_array((string) session()->get('role'), ['super_admin', 'admin'], true)): ?>
+                            <li class="menu-item <?= $isActiveMenu('approval_settings', ['approvals/settings']) ?>">
+                                <a href="<?= base_url('admin/approvals/settings') ?>" class="menu-link">
+                                    <div>ตั้งค่าผู้พิจารณา</div>
+                                </a>
+                            </li>
+                            <?php endif; ?>
+                        </ul>
+                    </li>
+
+                    <!-- งานไปราชการและรายงานผล -->
+                    <li class="menu-item <?= str_starts_with($currentUri, 'travel') || str_starts_with($currentUri, 'travel-reports') ? 'open' : '' ?>">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons bx bx-briefcase-alt-2 text-primary"></i>
-                            <div>ยื่นขออนุมัติไปราชการ</div>
+                            <div>ไปราชการและรายงานผล</div>
                         </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item <?= $currentUri === 'travel/create' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/travel/create') ?>" class="menu-link">
+                                    <div>ยื่นขอไปราชการ</div>
+                                </a>
+                            </li>
+                            <li class="menu-item <?= $currentUri === 'travel/my' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/travel/my') ?>" class="menu-link">
+                                    <div>ติดตามสถานะของฉัน</div>
+                                </a>
+                            </li>
+                            <li class="menu-item <?= $currentUri === 'travel' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/travel') ?>" class="menu-link">
+                                    <div>ทะเบียนไปราชการ</div>
+                                </a>
+                            </li>
+                            <li class="menu-item <?= str_starts_with($currentUri, 'travel-reports') ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/travel-reports') ?>" class="menu-link">
+                                    <div>รายงานผลไปราชการ</div>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
 
-                    <!-- ติดตามสถานะของฉัน -->
-                    <li class="menu-item <?= $isActiveMenu('travel_my', ['travel/my', 'travel/my/*']) ?>">
-                        <a href="<?= base_url('admin/travel/my') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-trip text-info"></i>
-                            <div>ติดตามสถานะของฉัน</div>
-                        </a>
-                    </li>
-
-                    <!-- ทะเบียนไปราชการทั้งหมด (รวมถึงการดูและจัดการคำขอ) -->
-                    <li class="menu-item <?= (!empty($customActive)) ? ($customActive === 'travel' ? 'active' : '') : (($currentUri === 'travel' || (str_starts_with($currentUri, 'travel/') && !in_array($currentUri, ['travel/create', 'travel/my']) && !str_starts_with($currentUri, 'travel/create/') && !str_starts_with($currentUri, 'travel/my/'))) ? 'active' : '') ?>">
-                        <a href="<?= base_url('admin/travel') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-list-check text-success"></i>
-                            <div>ทะเบียนไปราชการทั้งหมด</div>
-                        </a>
-                    </li>
-
-                    <!-- รายงานผลการไปราชการ (แยกเป็นระบบเฉพาะ) -->
-                    <li class="menu-item <?= $isActiveMenu('travel_reports', ['travel-reports', 'travel-reports/*']) ?>">
-                        <a href="<?= base_url('admin/travel-reports') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bxs-report text-warning"></i>
-                            <div>รายงานผลไปราชการ</div>
-                        </a>
-                    </li>
-
+                    <!-- ==========================================
+                         ส่วนตัว & ตั้งค่าระบบ
+                         ========================================== -->
                     <li class="menu-header small text-uppercase">
-                        <span class="menu-header-text">ส่วนตัว & ตั้งค่า</span>
+                        <span class="menu-header-text">ส่วนตัว & ผู้ดูแลระบบ</span>
                     </li>
 
                     <!-- ตั้งค่าลายเซ็น -->
@@ -538,9 +703,6 @@
                     </li>
 
                     <?php if (in_array(session()->get('role'), ['super_admin', 'admin'], true)): ?>
-                        <li class="menu-header small text-uppercase">
-                            <span class="menu-header-text text-primary fw-bold">ผู้ดูแล & เจ้าหน้าที่</span>
-                        </li>
                         <li class="menu-item <?= $isActiveMenu('users', ['users', 'users/*']) ?>">
                             <a href="<?= base_url('admin/users') ?>" class="menu-link text-primary fw-semibold">
                                 <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
@@ -553,12 +715,19 @@
                                 <div>ตารางสิทธิ์ (Matrix)</div>
                             </a>
                         </li>
+                        <li class="menu-item">
+                            <a href="http://localhost:8081" target="_blank" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-data text-secondary"></i>
+                                <div>จัดการฐานข้อมูล (PMA)</div>
+                            </a>
+                        </li>
                     <?php endif; ?>
 
+                    <!-- หน้าแรกสาธารณะ (Public Portal) -->
                     <li class="menu-item">
-                        <a href="http://localhost:8081" target="_blank" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-data text-secondary"></i>
-                            <div>จัดการฐานข้อมูล (PMA)</div>
+                        <a href="<?= base_url('/') ?>" class="menu-link text-primary" target="_blank">
+                            <i class="menu-icon tf-icons bx bx-globe"></i>
+                            <div>หน้าแรกสาธารณะ (เปิดดู)</div>
                         </a>
                     </li>
 

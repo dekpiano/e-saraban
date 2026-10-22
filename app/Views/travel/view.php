@@ -75,6 +75,38 @@
     </div>
 </div>
 
+<?php
+    $canCreateLinkedMemo = $isOfficer || ((int)session()->get('user_id') === (int)$travel['user_id']);
+?>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div><h5 class="mb-1 fw-bold"><i class="bx bx-link text-primary me-2"></i>เอกสารที่เกี่ยวข้อง</h5><small class="text-muted">บันทึกข้อความที่เกี่ยวข้องกับคำขอและรายงานผล</small></div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="<?= base_url('admin/travel/' . (int)$travel['id'] . '/print-bundle') ?>" target="_blank" class="btn btn-outline-primary btn-sm"><i class="bx bx-printer me-1"></i>พิมพ์ชุดเอกสาร</a>
+            <?php if ($canCreateLinkedMemo): ?>
+                <a href="<?= base_url('admin/memos/create?travel_request_id=' . (int)$travel['id']) ?>" class="btn btn-outline-secondary btn-sm"><i class="bx bx-file-blank me-1"></i>สร้างบันทึกข้อความเพิ่มเติม</a>
+            <?php endif; ?>
+        </div>
+    </div>
+    <div class="card-body">
+        <?php if (!empty($linkedMemos)): ?>
+            <div class="list-group list-group-flush">
+                <?php foreach ($linkedMemos as $memo): ?>
+                    <a href="<?= base_url('admin/memos/' . (int)$memo['id']) ?>" class="list-group-item list-group-item-action px-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div><div class="fw-semibold"><?= esc($memo['title'] ?? '-') ?></div><small class="text-muted"><?= esc($memo['doc_no'] ?? '-') ?></small></div>
+                        <span class="badge bg-label-secondary"><?= esc($memo['status'] ?? '-') ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <div class="text-muted small">ยังไม่มีบันทึกข้อความที่เชื่อมโยงกับคำขอนี้</div>
+        <?php endif; ?>
+        <?php if (!\Config\Database::connect()->tableExists('document_links')): ?>
+            <div class="alert alert-warning py-2 mt-3 mb-0 small">ต้องติดตั้งตารางเชื่อมโยงเอกสารก่อนใช้งานฟังก์ชันนี้</div>
+        <?php endif; ?>
+    </div>
+</div>
+
 <!-- Workflow Stepper Container: แสดงให้เห็นทั้งหนังสือขาไป และ ขากลับ พร้อมกัน -->
 <?php
     $isApproved        = ($travel['status'] === 'approved');

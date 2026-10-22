@@ -354,7 +354,7 @@ class UserModel extends Model
     {
         $db = \Config\Database::connect();
         $personnel = $db->table('skjacth_personnel.tb_personnel p')
-                        ->select('p.pers_id, p.pers_username, p.pers_prefix, p.pers_firstname, p.pers_lastname, p.pers_phone, p.pers_position, p.pers_learning, p.pers_img, pos.posi_name, l.lear_id, l.lear_namethai')
+                        ->select('p.pers_id, p.pers_username, p.pers_prefix, p.pers_firstname, p.pers_lastname, p.pers_phone, p.pers_position, p.pers_learning, p.pers_groupleade, p.pers_img, pos.posi_name, l.lear_id, l.lear_namethai')
                         ->join('skjacth_skj.tb_position pos', 'pos.posi_id = p.pers_position', 'left')
                         ->join('skjacth_skj.tb_learning l', 'l.lear_id = p.pers_learning', 'left')
                         ->where('p.pers_status', 'กำลังใช้งาน')

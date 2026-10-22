@@ -187,6 +187,9 @@
 
                     <!-- Quick Action Buttons -->
                     <div class="d-flex flex-wrap gap-2">
+                        <a href="<?= base_url('admin/center') ?>" class="btn btn-warning text-dark fw-bold px-3 shadow-sm">
+                            <i class="bx bx-folder-open me-1"></i> ศูนย์กลางงานเอกสาร
+                        </a>
                         <?php if ($pendingCount > 0): ?>
                             <a href="<?= base_url('admin/documents/inbox') ?>" class="btn btn-warning text-dark fw-bold px-3 shadow">
                                 <i class="bx bx-edit-alt me-1"></i> หนังสือรอคุณเกษียน <span class="badge bg-danger text-white rounded-pill ms-1 fw-bold"><?= $pendingCount ?></span>

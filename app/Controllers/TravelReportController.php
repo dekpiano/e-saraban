@@ -205,6 +205,14 @@ class TravelReportController extends BaseController
         $isOfficer   = in_array($sessionRole, ['super_admin', 'admin', 'saraban', 'executive'], true);
 
         $travelId = (int)$this->request->getGet('travel_id');
+        $memoId = (int)$this->request->getGet('memo_id');
+        $memo = null;
+        if ($memoId > 0) {
+            $memo = (new \App\Models\DocumentModel())->find($memoId);
+            if (!$memo || ($memo['doc_type'] ?? '') !== 'internal' || (!$isOfficer && (int)$memo['created_by'] !== (int)$userId)) {
+                return redirect()->to('/admin/travel-reports/create' . ($travelId > 0 ? '?travel_id=' . $travelId : ''))->with('error', 'ไม่พบบันทึกข้อความรายงานผลที่ถูกต้อง หรือคุณไม่มีสิทธิ์ใช้เอกสารนี้');
+            }
+        }
         $selectedTravel = null;
 
         // ดึงรายการคำขอที่อนุมัติแล้ว และรอรายงานผล
@@ -236,11 +244,16 @@ class TravelReportController extends BaseController
             }
         }
 
+        if ($travelId > 0 && $memoId <= 0) {
+            return redirect()->to('/admin/memos/create?purpose=travel_report&travel_id=' . $travelId)->with('warning', 'ก่อนบันทึกรายงานผล กรุณาสร้างบันทึกข้อความรายงานผลก่อน');
+        }
+
         return view('travel_reports/create', [
             'pendingRequests' => $pendingRequests,
-            'selectedTravel'  => $selectedTravel,
             'isOfficer'       => $isOfficer,
-        ]);
+            'memoId'          => $memoId,
+            'memo'            => $memo,
+        ] + ['selectedTravel' => $selectedTravel]);
     }
 
     /**
@@ -313,6 +326,33 @@ class TravelReportController extends BaseController
             return redirect()->back()->withInput()->with('error', 'คำขอนี้ยังไม่ได้รับอนุมัติ จึงยังไม่สามารถส่งรายงานผลได้');
         }
 
+        $memoId = (int)$this->request->getPost('memo_id');
+        $memo = $memoId > 0 ? (new \App\Models\DocumentModel())->find($memoId) : null;
+        if (!$memo || ($memo['doc_type'] ?? '') !== 'internal' || (!$isOfficer && (int)$memo['created_by'] !== (int)$userId)) {
+            $message = 'กรุณาจัดทำและบันทึกข้อความรายงานผลก่อนบันทึกรายงานผล';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $message, 'redirect' => base_url('admin/memos/create?purpose=travel_report&travel_id=' . $travelId)])->setStatusCode(400);
+            }
+            return redirect()->to('/admin/memos/create?purpose=travel_report&travel_id=' . $travelId)->with('error', $message);
+        }
+        $dbForMemo = \Config\Database::connect();
+        if (!$dbForMemo->tableExists('document_links')) {
+            return redirect()->back()->withInput()->with('error', 'ยังไม่ได้ติดตั้งตารางเชื่อมโยงเอกสาร กรุณาติดตั้ง document_links ก่อน');
+        }
+        $reportMemoLink = (new \App\Models\DocumentLinkModel())->where('source_type', 'document')
+            ->where('source_id', (int)$memoId)
+            ->where('target_type', 'travel_request')
+            ->where('target_id', (int)$travelId)
+            ->where('relation_type', 'report_memo')
+            ->first();
+        if (!$reportMemoLink) {
+            $message = 'บันทึกข้อความฉบับนี้ไม่ได้จัดทำสำหรับรายงานผลของคำขอนี้ กรุณาสร้างบันทึกข้อความรายงานผลก่อน';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $message, 'redirect' => base_url('admin/memos/create?purpose=travel_report&travel_id=' . $travelId)])->setStatusCode(400);
+            }
+            return redirect()->to('/admin/memos/create?purpose=travel_report&travel_id=' . $travelId)->with('error', $message);
+        }
+
         $reportDetail = trim($this->request->getPost('report_detail') ?: '');
         if (empty($reportDetail)) {
             if ($this->request->isAJAX()) {
@@ -348,6 +388,28 @@ class TravelReportController extends BaseController
         }
 
         $isFirstReport = empty($travel['reported_at']) || $travel['status'] !== 'reported';
+
+        $linkModel = new \App\Models\DocumentLinkModel();
+        $existingReportLink = $linkModel->where('source_type', 'document')
+            ->where('source_id', (int)$memoId)
+            ->where('target_type', 'travel_request')
+            ->where('target_id', (int)$travelId)
+            ->where('relation_type', 'report_memo')
+            ->first();
+        if (!$existingReportLink) {
+            $linkInserted = $linkModel->insert([
+                'source_type'   => 'document',
+                'source_id'     => (int)$memoId,
+                'target_type'   => 'travel_request',
+                'target_id'     => (int)$travelId,
+                'relation_type' => 'report_memo',
+                'created_by'    => (int)$userId,
+                'created_at'    => date('Y-m-d H:i:s'),
+            ]);
+            if (!$linkInserted) {
+                return redirect()->back()->withInput()->with('error', 'ไม่สามารถเชื่อมบันทึกข้อความรายงานผลได้ จึงยังไม่ได้บันทึกรายงานผล');
+            }
+        }
 
         $this->travelModel->update($travelId, [
             'status'        => 'reported',
@@ -399,6 +461,11 @@ class TravelReportController extends BaseController
         $canEdit = $isLoggedIn && ($isOfficer || ((int)$travel['user_id'] === (int)$userId));
 
         $logs = $isLoggedIn ? $this->logModel->getLogsForTravel($id) : [];
+        $linkedMemos = [];
+        $db = \Config\Database::connect();
+        if ($db->tableExists('document_links')) {
+            $linkedMemos = (new \App\Models\DocumentLinkModel())->getMemosForTravel($id);
+        }
 
         return view('travel_reports/view', [
             'travel'     => $travel,
@@ -406,6 +473,7 @@ class TravelReportController extends BaseController
             'canEdit'    => $canEdit,
             'isLoggedIn' => $isLoggedIn,
             'isOfficer'  => $isOfficer,
+            'linkedMemos' => $linkedMemos,
         ]);
     }
 
@@ -425,6 +493,20 @@ class TravelReportController extends BaseController
 
         if (!$isOfficer && (int)$travel['user_id'] !== (int)$userId) {
             return redirect()->to('/admin/travel-reports/' . $id)->with('error', 'คุณไม่มีสิทธิ์แก้ไขรายงานผลนี้');
+        }
+
+        $db = \Config\Database::connect();
+        $hasReportMemo = false;
+        if ($db->tableExists('document_links')) {
+            foreach ((new \App\Models\DocumentLinkModel())->getMemosForTravel($id) as $linkedMemo) {
+                if (($linkedMemo['relation_type'] ?? '') === 'report_memo') {
+                    $hasReportMemo = true;
+                    break;
+                }
+            }
+        }
+        if (!$hasReportMemo) {
+            return redirect()->to('/admin/memos/create?purpose=travel_report&travel_id=' . (int)$id)->with('warning', 'ก่อนแก้ไขรายงานผล กรุณาสร้างบันทึกข้อความรายงานผลก่อน');
         }
 
         return view('travel_reports/edit', [
@@ -560,7 +642,7 @@ class TravelReportController extends BaseController
     private function _uploadFileToServer($file, $remotePath, $originalName)
     {
         $uploadUrl = env('upload.server.url') ?: 'https://skj.nsnpao.go.th/upload.php';
-        $token     = env('upload.server.token') ?: 'Dekpiano2025!!';
+        $token     = (string) env('upload.server.token');
 
         $filePath   = $file->getTempName();
         $fileSize   = filesize($filePath);
@@ -683,7 +765,7 @@ class TravelReportController extends BaseController
     private function _deleteFileFromServer($remoteFilePath)
     {
         $deleteUrl = env('upload.server.delete.url') ?: 'https://skj.nsnpao.go.th/delete.php';
-        $token     = env('upload.server.token') ?: 'Dekpiano2025!!';
+        $token     = (string) env('upload.server.token');
 
         try {
             $client = \Config\Services::curlrequest();

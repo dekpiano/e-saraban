@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=K2D:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- ฟอนต์ TH Sarabun New ฝังแบบ Base64 -->
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/fonts/sarabun-embedded.css') ?>">
+    <!-- ฟอนต์ TH SarabunIT๙ & TH Sarabun New ฝังแบบ Base64 -->
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/fonts/sarabun-embedded.css?v=' . (file_exists(FCPATH . 'assets/vendor/fonts/sarabun-embedded.css') ? filemtime(FCPATH . 'assets/vendor/fonts/sarabun-embedded.css') : time())) ?>">
     
     <!-- Boxicons -->
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -117,7 +117,7 @@
             </div>
 
             <!-- เนื้อหาบันทึกข้อความ -->
-            <div class="body-text space-before-6pt">
+            <div class="body-text indent space-before-6pt">
                 <?= $document['content'] ?>
             </div>
 
@@ -130,7 +130,7 @@
                         <?php endif; ?>
                     </div>
                     <div class="sign-name">( <?= esc(($creator['prefix'] ?? '') . ($creator['first_name'] ?? '') . ' ' . ($creator['last_name'] ?? '')) ?> )</div>
-                    <div class="sign-position">ตำแหน่ง <?= esc($creator['position_name'] ?? 'ครูผู้สอน') ?><br><?= esc($creator['department_name'] ?? '') ?></div>
+                    <div class="sign-position">ตำแหน่ง <?= esc($creator['position_name'] ?? 'ครูผู้สอน') ?></div>
                 </div>
             </div>
 

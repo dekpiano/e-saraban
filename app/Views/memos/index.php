@@ -84,7 +84,7 @@
                     <h5 class="card-title mb-1 fw-bold text-primary">
                         <i class="bx bx-notepad me-2"></i> ทะเบียนบันทึกข้อความ (ภายในโรงเรียน)
                     </h5>
-                    <small class="text-muted">ระบบร่างบันทึกข้อความแบบพิมพ์เหมือน Word ออกเลขทะเบียน และเดินเรื่องขออนุมัติออนไลน์</small>
+                    <small class="text-muted">จัดทำบันทึกข้อความ ส่งสารบรรณตรวจสอบ ออกเลข และเดินเรื่องเกษียนออนไลน์</small>
                 </div>
                 <div class="d-flex gap-2">
                     <a href="<?= base_url('admin/memos/create') ?>" class="btn btn-primary fw-semibold shadow-sm">
@@ -101,6 +101,11 @@
                             <li class="nav-item">
                                 <a class="nav-link <?= empty($currentStatus) ? 'active' : '' ?>" href="<?= base_url('admin/memos') ?>">
                                     <i class="bx bx-grid-alt me-1"></i> ทั้งหมด (<?= $stats['total'] ?? 0 ?>)
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link <?= $currentStatus === 'pending_saraban' ? 'active' : '' ?>" href="<?= base_url('admin/memos?status=pending_saraban') ?>">
+                                    <i class="bx bx-clipboard me-1"></i> รอสารบรรณตรวจสอบ (<?= $stats['pending_saraban'] ?? 0 ?>)
                                 </a>
                             </li>
                             <li class="nav-item">

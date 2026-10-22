@@ -15,8 +15,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=K2D:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- ฟอนต์ TH Sarabun New ฝังแบบ Base64 -->
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/fonts/sarabun-embedded.css') ?>">
+    <!-- ฟอนต์ TH SarabunIT๙ & TH Sarabun New ฝังแบบ Base64 -->
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/fonts/sarabun-embedded.css?v=' . (file_exists(FCPATH . 'assets/vendor/fonts/sarabun-embedded.css') ? filemtime(FCPATH . 'assets/vendor/fonts/sarabun-embedded.css') : time())) ?>">
 
     <!-- Boxicons สำหรับปุ่มควบคุม -->
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -86,8 +86,8 @@
         </button>
 
         <button type="button" class="bar-btn bar-btn-submit" onclick="submitMemoForm('route')"
-            title="ออกเลขทะเบียนและส่งเสนอเกษียน">
-            <i class="bx bx-send"></i> ออกเลข & เสนอเกษียน
+            title="ส่งบันทึกข้อความให้เจ้าหน้าที่สารบรรณตรวจสอบก่อนออกเลข">
+            <i class="bx bx-send"></i> ส่งให้สารบรรณตรวจสอบ
         </button>
     </div>
 
@@ -106,6 +106,15 @@
         <input type="hidden" name="signature_data" id="hidden_signature_data" value="">
         <input type="hidden" name="remove_signature" id="hidden_remove_signature" value="0">
         <input type="hidden" name="submit_action" id="submitAction" value="route">
+        <input type="hidden" name="travel_request_id" value="<?= (int)($travelRequestId ?? 0) ?>">
+        <input type="hidden" name="workflow_purpose" value="<?= esc($workflowPurpose ?? '') ?>">
+        <input type="hidden" name="context_travel_id" value="<?= (int)($contextTravelId ?? 0) ?>">
+        <?php if (in_array(($workflowPurpose ?? ''), ['travel_request', 'travel_report'], true)): ?>
+            <div class="alert alert-info no-print mb-3">
+                <strong><i class="bx bx-link me-1"></i>บันทึกข้อความสำหรับงานที่เกี่ยวข้อง</strong>
+                <div class="small mt-1"><?= ($workflowPurpose === 'travel_request') ? 'เมื่อบันทึกข้อความแล้ว ระบบจะพาไปกรอกคำขออนุมัติไปราชการต่อ และเชื่อมเอกสารเข้าด้วยกันโดยอัตโนมัติ' : 'เมื่อบันทึกข้อความแล้ว ระบบจะพาไปกรอกรายงานผลไปราชการต่อ และเชื่อมเอกสารเข้ากับคำขอต้นเรื่อง' ?></div>
+            </div>
+        <?php endif; ?>
 
         <!-- แผ่นกระดาษ A4 - ตามแม่แบบ 100% -->
         <div class="page" id="printableMemoPaper">
@@ -126,7 +135,7 @@
                 <div class="col-left">
                     <span class="label">ที่</span>
                     <span class="editable-field" contenteditable="true"
-                        id="field_doc_no"><?= esc($suggestedDocNo) ?></span>
+                        id="field_doc_no">นว 51008.2/</span>
                 </div>
                 <div class="col-right">
                     <span class="label">วันที่</span>
@@ -158,11 +167,14 @@
                 </button>
             </div>
 
-            <div class="body-text space-before-6pt is-watermark" id="memoBody" contenteditable="true"
+            <div class="body-text space-before-6pt <?= !empty($defaultContent) ? '' : 'is-watermark' ?>" id="memoBody" contenteditable="true"
                 data-placeholder="ด้วย (พิมพ์หรือแก้ไขข้อความเนื้อหาบันทึกข้อความที่นี่...)&#10;&#10;จึงเรียนมาเพื่อโปรดพิจารณา">
-                <p>ด้วย ข้าพเจ้ามีความประสงค์จะขออนุมัติ [ระบุเรื่องหรือโครงการ...] เพื่อ [ระบุวัตถุประสงค์สั้น ๆ] ...
-                </p>
-                <p>จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติ</p>
+                <?php if (!empty($defaultContent)): ?>
+                    <?= $defaultContent ?>
+                <?php else: ?>
+                    <p>ด้วย ข้าพเจ้ามีความประสงค์จะขออนุมัติ [ระบุเรื่องหรือโครงการ...] เพื่อ [ระบุวัตถุประสงค์สั้น ๆ] ...</p>
+                    <p>จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติ</p>
+                <?php endif; ?>
             </div>
 
             <div class="signature-section">
@@ -177,13 +189,8 @@
                             <i class="bx bx-pen me-1"></i> คลิกเพื่อเพิ่มลายเซ็นออนไลน์ (หรือเว้นว่างไว้ลงนามสด)
                         </span>
                     </div>
-                    <div class="sign-name" contenteditable="true">(
-                        <?= esc(($user['prefix'] ?? '') . ($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?>
-                        )
-                    </div>
-                    <div class="sign-position" contenteditable="true">ตำแหน่ง
-                        <?= esc($user['position_name'] ?? 'ครูผู้สอน') ?><br>กลุ่มสาระการเรียนรู้<?= esc($user['department_name'] ?? 'โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์') ?>
-                    </div>
+                    <div class="sign-name" contenteditable="true">( <?= esc(($user['prefix'] ?? '') . ($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?> )</div>
+                    <div class="sign-position" contenteditable="true">ตำแหน่ง <?= esc($user['position_name'] ?? 'ครูผู้สอน') ?></div>
                 </div>
             </div>
         </div>
@@ -201,7 +208,7 @@
             <div class="drawer-body">
                 <div class="form-group">
                     <label>เลขทะเบียนรับ/ส่งภายใน รร.</label>
-                    <input type="text" class="form-control" value="<?= esc($nextRegNo) ?>" readonly
+                    <input type="text" class="form-control" value="รอเจ้าหน้าที่สารบรรณออกเลข" readonly
                         style="background:#f1f5f9; font-weight:bold;">
                 </div>
 
@@ -231,44 +238,35 @@
                 </div>
 
                 <div class="form-group" style="margin-top:20px;">
-                    <label style="font-size:14px; color:#0f172a; border-bottom:1px solid #e2e8f0; padding-bottom:5px;">
-                        <i class="bx bx-git-branch text-primary"></i> กำหนดเส้นทางเดินเรื่องเสนอเกษียน
-                    </label>
 
-                    <div class="step-card">
-                        <span class="step-badge">ขั้นที่ 1: หัวหน้ากลุ่มสาระฯ / หัวหน้างาน</span>
-                        <select class="form-select" name="route_users[]" required>
-                            <?php foreach ($allUsers as $u): ?>
-                                <option value="<?= $u['id'] ?>" <?= $u['id'] == 4 ? 'selected' : '' ?>>
-                                    <?= esc($u['prefix'] . $u['first_name'] . ' ' . $u['last_name']) ?>
-                                    (<?= esc($u['position_name']) ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+
+                    <div id="routeStepsContainer">
+                        <?php $initialRouteIds = array_values($suggestedRoutePersIds ?? []); if (empty($initialRouteIds)) $initialRouteIds = ['']; ?>
+                        <?php foreach ($initialRouteIds as $routeIndex => $selectedRouteUserId): ?>
+                            <div class="step-card route-step">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="step-badge">ขั้นที่ <?= (int)$routeIndex + 1 ?></span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRouteStep(this)" <?= count($initialRouteIds) === 1 ? 'disabled' : '' ?>>
+                                        <i class="bx bx-trash"></i> ลบขั้น
+                                    </button>
+                                </div>
+                                <select class="form-select route-user-select" name="route_users[]">
+                                    <option value="">-- เลือกผู้เกษียนลำดับที่ <?= (int)$routeIndex + 1 ?> --</option>
+                                    <?php foreach ($allPersonnel as $person): ?>
+                                        <option value="<?= esc($person['pers_id']) ?>" <?= (string)$selectedRouteUserId === (string)$person['pers_id'] ? 'selected' : '' ?>>
+                                            <?= esc($person['full_name'] ?: $person['pers_username'] ?: $person['pers_id']) ?>
+                                            (<?= esc($person['position_name'] ?? 'ไม่ระบุตำแหน่ง') ?><?= !empty($person['group_name']) ? ' · ' . esc($person['group_name']) : '' ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-
-                    <div class="step-card">
-                        <span class="step-badge">ขั้นที่ 2: รองผู้อำนวยการกลุ่มบริหาร</span>
-                        <select class="form-select" name="route_users[]" required>
-                            <?php foreach ($allUsers as $u): ?>
-                                <option value="<?= $u['id'] ?>" <?= $u['id'] == 3 ? 'selected' : '' ?>>
-                                    <?= esc($u['prefix'] . $u['first_name'] . ' ' . $u['last_name']) ?>
-                                    (<?= esc($u['position_name']) ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="step-card">
-                        <span class="step-badge">ขั้นที่ 3: ผู้อำนวยการโรงเรียน (อนุมัติ)</span>
-                        <select class="form-select" name="route_users[]" required>
-                            <?php foreach ($allUsers as $u): ?>
-                                <option value="<?= $u['id'] ?>" <?= $u['id'] == 1 ? 'selected' : '' ?>>
-                                    <?= esc($u['prefix'] . $u['first_name'] . ' ' . $u['last_name']) ?>
-                                    (<?= esc($u['position_name']) ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addRouteStep()">
+                        <i class="bx bx-plus"></i> เพิ่มผู้เกษียนอีกลำดับ
+                    </button>
+                    <div class="small text-muted mt-2">
+                        * ก่อนส่ง ระบบจะตรวจว่าทุกลำดับเลือกผู้รับครบและไม่มีชื่อซ้ำ
                     </div>
                 </div>
             </div>
@@ -289,6 +287,40 @@
             const backdrop = document.getElementById('drawerBackdrop');
             drawer.classList.toggle('open');
             backdrop.classList.toggle('show');
+        }
+
+        function renumberRouteSteps() {
+            const steps = Array.from(document.querySelectorAll('#routeStepsContainer .route-step'));
+            steps.forEach((step, index) => {
+                const badge = step.querySelector('.step-badge');
+                const select = step.querySelector('.route-user-select');
+                const removeButton = step.querySelector('button');
+                if (badge) badge.textContent = 'ขั้นที่ ' + (index + 1);
+                if (select) {
+                    select.options[0].textContent = '-- เลือกผู้เกษียนลำดับที่ ' + (index + 1) + ' --';
+                }
+                if (removeButton) removeButton.disabled = steps.length === 1;
+            });
+        }
+
+        function addRouteStep() {
+            const container = document.getElementById('routeStepsContainer');
+            const firstStep = container ? container.querySelector('.route-step') : null;
+            if (!container || !firstStep) return;
+
+            const newStep = firstStep.cloneNode(true);
+            const select = newStep.querySelector('.route-user-select');
+            if (select) select.selectedIndex = 0;
+            container.appendChild(newStep);
+            renumberRouteSteps();
+        }
+
+        function removeRouteStep(button) {
+            const container = document.getElementById('routeStepsContainer');
+            if (!container || container.querySelectorAll('.route-step').length <= 1) return;
+            const step = button.closest('.route-step');
+            if (step) step.remove();
+            renumberRouteSteps();
         }
 
         function showMemoToast(message, type = 'success') {
@@ -540,12 +572,38 @@
             document.getElementById('hiddenContent').value = bodyContent;
 
             if (!title) {
-                alert('กรุณาระบุชื่อเรื่องบันทึกข้อความ');
+                AppAlert.warning('กรุณาระบุชื่อเรื่องบันทึกข้อความ');
                 document.getElementById('field_title').focus();
                 return;
             }
 
             const form = document.getElementById('memoForm');
+            if (action === 'route') {
+                const routeSelects = Array.from(document.querySelectorAll('#routeStepsContainer .route-user-select'));
+                const routeUsers = routeSelects.map(select => select.value).filter(Boolean);
+
+                if (routeSelects.length === 0 || routeUsers.length !== routeSelects.length) {
+                    AppAlert.warning('กรุณาตั้งค่าเส้นทางเกษียนให้ครบทุกลำดับก่อนส่ง');
+                    if (routeSelects.some(select => !select.value)) {
+                        toggleDrawer();
+                        const firstEmpty = routeSelects.find(select => !select.value);
+                        if (firstEmpty) firstEmpty.focus();
+                    }
+                    return;
+                }
+
+                if (new Set(routeUsers).size !== routeUsers.length) {
+                    AppAlert.warning('พบผู้เกษียนชื่อซ้ำ กรุณาเลือกผู้พิจารณาแต่ละลำดับให้แตกต่างกัน');
+                    toggleDrawer();
+                    return;
+                }
+
+                const lastStep = routeSelects[routeSelects.length - 1];
+                if (!confirm('ยืนยันส่งบันทึกข้อความตามเส้นทางเกษียน ' + routeSelects.length + ' ลำดับ โดยผู้รับลำดับสุดท้ายคือ ' + lastStep.options[lastStep.selectedIndex].text.trim() + ' ใช่หรือไม่?')) {
+                    toggleDrawer();
+                    return;
+                }
+            }
             form.submit();
         }
 
@@ -689,7 +747,7 @@
 
         function applyDrawnSignature() {
             if (!hasSigDrawn) {
-                alert('กรุณาวาดลายเซ็นบนกระดานก่อนกดใช้');
+                AppAlert.warning('กรุณาวาดลายเซ็นบนกระดานก่อนกดใช้');
                 return;
             }
             const dataUrl = sigCanvas.toDataURL('image/png');
@@ -801,6 +859,8 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<?= base_url('assets/js/app-swal.js?v=' . (file_exists(FCPATH . 'assets/js/app-swal.js') ? filemtime(FCPATH . 'assets/js/app-swal.js') : time())) ?>"></script>
 </body>
 
 </html>

@@ -33,6 +33,7 @@ $routes->get('travel-reports/(:num)', 'TravelReportController::view/$1');
 $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
     $routes->get('', 'DashboardController::index');
     $routes->get('dashboard', 'DashboardController::index');
+    $routes->get('center', 'DocumentCenterController::index');
 
     // Profile & e-Signature
     $routes->get('profile', 'AuthController::profile');
@@ -53,6 +54,9 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
     // บันทึกข้อความ (ภายในโรงเรียน)
     $routes->get('memos', 'InternalMemoController::index');
     $routes->get('memos/create', 'InternalMemoController::create');
+    $routes->get('memos/saraban-inbox', 'InternalMemoController::sarabanInbox');
+    $routes->post('memos/(:num)/update-route', 'InternalMemoController::updateRoute/$1');
+    $routes->post('memos/(:num)/issue-number', 'InternalMemoController::issueNumber/$1');
     $routes->post('memos/store', 'InternalMemoController::store');
     $routes->get('memos/(:num)', 'InternalMemoController::view/$1');
     $routes->get('memos/(:num)/print', 'InternalMemoController::printView/$1');
@@ -61,6 +65,16 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
     $routes->post('memos/(:num)/delete', 'InternalMemoController::delete/$1');
     $routes->post('memos/(:num)/sign', 'InternalMemoController::sign/$1');
 
+    // Approval / Permission requests must reference an existing internal memo first
+    $routes->get('approvals', 'ApprovalController::index');
+    $routes->get('approvals/create', 'ApprovalController::create');
+    $routes->post('approvals/store', 'ApprovalController::store');
+    $routes->get('approvals/settings', 'ApprovalController::settings');
+    $routes->post('approvals/settings', 'ApprovalController::saveSettings');
+    $routes->get('approvals/(:num)/print-bundle', 'ApprovalController::printBundle/$1');
+    $routes->get('approvals/(:num)', 'ApprovalController::view/$1');
+    $routes->post('approvals/(:num)/decide', 'ApprovalController::decide/$1');
+
     // Official Travel Requests & Tracking (ไปราชการและติดตาม)
     $routes->get('travel', 'TravelController::index');
     $routes->get('travel/my', 'TravelController::my');
@@ -68,6 +82,7 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
     $routes->get('travel/create', 'TravelController::create');
     $routes->get('travel/check-duplicate', 'TravelController::checkDuplicate');
     $routes->post('travel/store', 'TravelController::store');
+    $routes->get('travel/(:num)/print-bundle', 'TravelController::printBundle/$1');
     $routes->get('travel/(:num)', 'TravelController::view/$1');
     $routes->post('travel/(:num)/sign', 'TravelController::sign/$1');
     $routes->post('travel/(:num)/update-step', 'TravelController::updateStep/$1');

@@ -124,3 +124,16 @@ _modules/*
 
 /results/
 /phpunit.xml
+.serena/
+
+# Local database backups
+backups/
+
+# Draft Word documents
+*.docx
+
+# User Uploaded Signatures
+/public/uploads/signatures/*
+!/public/uploads/signatures/index.html
+!/public/uploads/signatures/.gitkeep
+
