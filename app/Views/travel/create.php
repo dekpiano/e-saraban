@@ -147,9 +147,9 @@
                                 <a class="btn btn-sm btn-outline-primary" target="_blank" href="<?= base_url('admin/memos/' . (int)($memoId ?? 0)) ?>">
                                     <i class="bx bx-show me-1"></i> เปิดดูบันทึกข้อความ
                                 </a>
-                                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('admin/travel/create?memo_type=external') ?>" title="เปลี่ยนเป็นแนบเอกสารที่ทำมาเอง">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="confirmSwitchToExternal()" title="เปลี่ยนเป็นแนบเอกสารที่ทำมาเอง">
                                     <i class="bx bx-transfer-alt me-1"></i> สลับเป็นแนบไฟล์ที่ทำมาเอง
-                                </a>
+                                </button>
                             </div>
                         </div>
                     <?php else: ?>
@@ -162,9 +162,9 @@
                                     ท่านเลือกยื่นขอไปราชการโดยใช้บันทึกข้อความ/เอกสารที่จัดทำมาเอง โปรดแนบไฟล์เอกสาร PDF ในช่องแนบไฟล์ด้านล่าง
                                 </div>
                             </div>
-                            <a class="btn btn-sm btn-primary fw-semibold shadow-xs" href="<?= base_url('admin/memos/create?purpose=travel_request') ?>">
+                            <button type="button" class="btn btn-sm btn-primary fw-semibold shadow-xs" onclick="confirmSwitchToSystem()">
                                 <i class="bx bx-edit me-1"></i> ต้องการพิมพ์บันทึกข้อความในระบบแทน คลิกที่นี่
-                            </a>
+                            </button>
                         </div>
                     <?php endif; ?>
 
@@ -1198,5 +1198,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function confirmSwitchToExternal() {
+    if (typeof Swal === 'undefined') {
+        if (confirm('ท่านต้องการเปลี่ยนเป็น มีบันทึกข้อความที่ทำมาเอง (แนบไฟล์ PDF) ใช่หรือไม่?')) {
+            window.location.href = "<?= base_url('admin/travel/create?memo_type=external') ?>";
+        }
+        return;
+    }
+    Swal.fire({
+        title: 'ยืนยันการสลับรูปแบบ',
+        html: '<div style="font-family:\'K2D\', sans-serif;" class="text-secondary">ท่านต้องการเปลี่ยนเป็น <strong>มีบันทึกข้อความที่ทำมาเอง (แนบไฟล์ PDF)</strong> ใช่หรือไม่?</div>',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '<i class="bx bx-check me-1"></i> ยืนยันสลับ',
+        cancelButtonText: 'ยกเลิก',
+        customClass: {
+            popup: 'rounded-4 shadow-lg border-0',
+            confirmButton: 'btn btn-warning text-dark fw-bold px-3 py-2 mx-1 shadow-sm',
+            cancelButton: 'btn btn-outline-secondary px-3 py-2 mx-1'
+        },
+        buttonsStyling: false
+    }).then(res => {
+        if (res.isConfirmed) {
+            window.location.href = "<?= base_url('admin/travel/create?memo_type=external') ?>";
+        }
+    });
+}
+
+function confirmSwitchToSystem() {
+    if (typeof Swal === 'undefined') {
+        if (confirm('ท่านต้องการไปจัดทำบันทึกข้อความในระบบ e-Saraban ใช่หรือไม่?')) {
+            window.location.href = "<?= base_url('admin/memos/create?purpose=travel_request') ?>";
+        }
+        return;
+    }
+    Swal.fire({
+        title: 'ยืนยันไปพิมพ์ในระบบ',
+        html: '<div style="font-family:\'K2D\', sans-serif;" class="text-secondary">ท่านต้องการไปจัดทำบันทึกข้อความในระบบ <strong>e-Saraban</strong> ใช่หรือไม่?</div>',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '<i class="bx bx-edit me-1"></i> ไปพิมพ์ในระบบ',
+        cancelButtonText: 'ยกเลิก',
+        customClass: {
+            popup: 'rounded-4 shadow-lg border-0',
+            confirmButton: 'btn btn-primary fw-bold px-3 py-2 mx-1 shadow-sm',
+            cancelButton: 'btn btn-outline-secondary px-3 py-2 mx-1'
+        },
+        buttonsStyling: false
+    }).then(res => {
+        if (res.isConfirmed) {
+            window.location.href = "<?= base_url('admin/memos/create?purpose=travel_request') ?>";
+        }
+    });
+}
 </script>
 <?= $this->endSection() ?>

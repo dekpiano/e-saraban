@@ -260,7 +260,7 @@
                         </div>
                     </div>
                     <div class="d-flex gap-2 align-items-center">
-                        <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#travelMemoChoiceModal">
+                        <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" onclick="promptTravelMemoChoice()">
                             <i class="bx bx-help-circle me-1"></i> เลือกรูปแบบ
                         </button>
                         <a href="<?= base_url('admin/travel/create?memo_type=external') ?>" class="btn btn-warning btn-sm text-dark fw-bold shadow-xs">
@@ -1551,79 +1551,83 @@
             </div>
         </div>
 
-    <?php if (($workflowPurpose ?? '') === 'travel_request'): ?>
-    <!-- Modal ถามรูปแบบบันทึกข้อความสำหรับยื่นไปราชการ -->
-    <div class="modal fade" id="travelMemoChoiceModal" tabindex="-1" aria-labelledby="travelMemoChoiceModalLabel" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem; overflow: hidden;">
-                <div class="modal-header border-0 pb-0 pt-4 px-4 bg-light">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 text-primary">
-                            <i class="bx bx-briefcase fs-3"></i>
-                        </div>
-                        <div>
-                            <h5 class="modal-title fw-bold text-dark mb-0" id="travelMemoChoiceModalLabel">เลือกรูปแบบบันทึกข้อความ (ขออนุมัติไปราชการ)</h5>
-                            <small class="text-muted">กรุณาเลือกรูปแบบที่สอดคล้องกับการดำเนินงานของท่าน</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-body p-4 bg-light">
-                    <div class="row g-3">
-                        <!-- ตัวเลือก 1: พิมพ์ในระบบ -->
-                        <div class="col-md-6">
-                            <div class="card h-100 border border-2 border-primary shadow-xs position-relative" style="border-radius: 1rem; cursor: pointer; transition: all 0.2s;" onclick="chooseMemoMode('system')" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
-                                <div class="card-body p-4 text-center d-flex flex-column justify-content-between">
-                                    <div>
-                                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 58px; height: 58px;">
-                                            <i class="bx bx-edit fs-2"></i>
-                                        </div>
-                                        <h6 class="fw-bold text-dark mb-2">พิมพ์บันทึกข้อความในระบบ</h6>
-                                        <p class="small text-muted mb-3" style="line-height: 1.5;">
-                                            สร้างแบบฟอร์มบันทึกข้อความมาตรฐาน e-Saraban พิมพ์เนื้อหา จัดย่อหน้า และลงนามดิจิทัล เมื่อเสร็จสิ้นระบบจะส่งต่อเข้าสู่คำขอไปราชการอัตโนมัติ
-                                        </p>
-                                    </div>
-                                    <button type="button" class="btn btn-primary w-100 fw-bold py-2 shadow-xs" onclick="chooseMemoMode('system')">
-                                        <i class="bx bx-check me-1"></i> เริ่มพิมพ์ในระบบตอนนี้
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ตัวเลือก 2: ทำมาเองจากภายนอก -->
-                        <div class="col-md-6">
-                            <div class="card h-100 border border-2 border-warning shadow-xs position-relative" style="border-radius: 1rem; cursor: pointer; transition: all 0.2s; background: #fffcf5;" onclick="chooseMemoMode('external')" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
-                                <div class="card-body p-4 text-center d-flex flex-column justify-content-between">
-                                    <div>
-                                        <div class="rounded-circle bg-warning text-dark d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 58px; height: 58px;">
-                                            <i class="bx bx-paperclip fs-2"></i>
-                                        </div>
-                                        <h6 class="fw-bold text-dark mb-2">มีบันทึกข้อความที่ทำมาเอง</h6>
-                                        <p class="small text-muted mb-3" style="line-height: 1.5;">
-                                            สำหรับผู้ที่มีเอกสารหรือไฟล์ PDF บันทึกข้อความที่พิมพ์จากภายนอกเรียบร้อยแล้ว ไม่ต้องพิมพ์ซ้ำในระบบ ข้ามไปกรอกคำขอและแนบไฟล์ได้ทันที
-                                        </p>
-                                    </div>
-                                    <a href="<?= base_url('admin/travel/create?memo_type=external') ?>" class="btn btn-warning text-dark fw-bold w-100 py-2 shadow-xs">
-                                        <i class="bx bx-arrow-to-right me-1"></i> ข้ามไปแนบไฟล์ & ยื่นคำขอ ➔
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0 px-4 pb-4 bg-light justify-content-center">
-                    <small class="text-muted"><i class="bx bx-info-circle me-1"></i>ท่านสามารถสลับรูปแบบไปมาระหว่างจัดทำได้ตลอดเวลา</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php endif; ?>
-
     <script src="<?= base_url('assets/vendor/libs/jquery/jquery.js') ?>"></script>
     <script src="<?= base_url('assets/vendor/js/bootstrap.js') ?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="<?= base_url('assets/js/app-swal.js?v=' . (file_exists(FCPATH . 'assets/js/app-swal.js') ? filemtime(FCPATH . 'assets/js/app-swal.js') : time())) ?>"></script>
     <script src="<?= base_url('assets/js/submit-loading.js?v=' . (file_exists(FCPATH . 'assets/js/submit-loading.js') ? filemtime(FCPATH . 'assets/js/submit-loading.js') : time())) ?>"></script>
     <script>
+    function promptTravelMemoChoice() {
+        if (typeof Swal === 'undefined') {
+            if (confirm("ท่านมีบันทึกข้อความที่ทำมาเองจากภายนอกหรือไม่?\n- คลิก 'ตกลง' หากมีเอกสารที่ทำมาเอง (แนบ PDF)\n- คลิก 'ยกเลิก' เพื่อพิมพ์บันทึกข้อความในระบบ")) {
+                window.location.href = "<?= base_url('admin/travel/create?memo_type=external') ?>";
+            }
+            return;
+        }
+
+        Swal.fire({
+            title: 'เลือกรูปแบบบันทึกข้อความ',
+            html: `
+                <div class="text-start" style="font-family: 'K2D', sans-serif;">
+                    <p class="text-muted mb-3" style="font-size: 0.95rem; line-height: 1.5;">
+                        ท่านกำลังดำเนินการ <strong>ยื่นขออนุมัติไปราชการ</strong> กรุณาเลือกรูปแบบบันทึกข้อความที่ต้องการใช้งาน:
+                    </p>
+                    <div class="card mb-3 border border-2 border-primary shadow-xs" style="border-radius: 0.85rem; background: #f8faff;">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-start gap-2">
+                                <span class="badge bg-primary text-white p-2 rounded-circle shadow-xs"><i class="bx bx-edit fs-5"></i></span>
+                                <div>
+                                    <h6 class="fw-bold text-primary mb-1">๑. พิมพ์บันทึกข้อความในระบบ e-Saraban</h6>
+                                    <p class="text-muted small mb-0" style="line-height: 1.45;">
+                                        จัดทำแบบฟอร์มบันทึกข้อความออนไลน์ พิมพ์เนื้อหา จัดย่อหน้า และลงนามดิจิทัล เมื่อเสร็จสิ้นระบบจะส่งต่อเข้าสู่คำขอไปราชการอัตโนมัติ
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card border border-2 border-warning shadow-xs" style="border-radius: 0.85rem; background: #fffcf5;">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-start gap-2">
+                                <span class="badge bg-warning text-dark p-2 rounded-circle shadow-xs"><i class="bx bx-paperclip fs-5"></i></span>
+                                <div>
+                                    <h6 class="fw-bold text-warning-emphasis mb-1">๒. มีบันทึกข้อความที่ทำมาเองแล้ว</h6>
+                                    <p class="text-muted small mb-0" style="line-height: 1.45;">
+                                        สำหรับผู้ที่มีเอกสารหรือไฟล์ PDF บันทึกข้อความที่พิมพ์จากภายนอกเรียบร้อยแล้ว ไม่ต้องพิมพ์ซ้ำในระบบ ข้ามไปแนบไฟล์และยื่นขอไปราชการได้ทันที
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: '<i class="bx bx-edit me-1"></i> พิมพ์ในระบบ e-Saraban',
+            denyButtonText: '<i class="bx bx-paperclip me-1"></i> ทำมาเอง (แนบ PDF ภายนอก)',
+            cancelButtonText: '<i class="bx bx-x me-1"></i> ปิดหน้าต่าง',
+            customClass: {
+                popup: 'rounded-4 shadow-lg border-0 p-3',
+                title: 'fw-bold text-dark fs-4 pt-2',
+                confirmButton: 'btn btn-primary fw-bold px-3 py-2 mx-1 shadow-sm',
+                denyButton: 'btn btn-warning text-dark fw-bold px-3 py-2 mx-1 shadow-sm',
+                cancelButton: 'btn btn-outline-secondary fw-semibold px-3 py-2 mx-1'
+            },
+            buttonsStyling: false,
+            width: '640px',
+            allowOutsideClick: true
+        }).then((result) => {
+            if (result.isDenied) {
+                // เลือกแบบทำมาเอง -> ไปยังหน้า travel create พร้อม memo_type=external
+                window.location.href = "<?= base_url('admin/travel/create?memo_type=external') ?>";
+            } else if (result.isConfirmed) {
+                // เลือกพิมพ์ในระบบ -> อยู่หน้านี้ต่อ พร้อมโฟกัสที่ช่องเรื่อง
+                const titleInput = document.getElementById('memoTitleDisplay');
+                if (titleInput) titleInput.focus();
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         <?php if (session()->getFlashdata('success')): ?>
             AppAlert.success(<?= json_encode(session()->getFlashdata('success')) ?>, 'ดำเนินการสำเร็จ');
@@ -1636,25 +1640,11 @@
         <?php endif; ?>
 
         <?php if (($workflowPurpose ?? '') === 'travel_request'): ?>
-        const choiceModalEl = document.getElementById('travelMemoChoiceModal');
-        if (choiceModalEl && typeof bootstrap !== 'undefined') {
-            const memoChoiceModal = new bootstrap.Modal(choiceModalEl);
-            memoChoiceModal.show();
-        }
+        setTimeout(function() {
+            promptTravelMemoChoice();
+        }, 300);
         <?php endif; ?>
     });
-
-    function chooseMemoMode(mode) {
-        if (mode === 'system') {
-            const modalEl = document.getElementById('travelMemoChoiceModal');
-            if (modalEl && typeof bootstrap !== 'undefined') {
-                const instance = bootstrap.Modal.getInstance(modalEl);
-                if (instance) instance.hide();
-            }
-        } else if (mode === 'external') {
-            window.location.href = "<?= base_url('admin/travel/create?memo_type=external') ?>";
-        }
-    }
     </script>
 </body>
 
