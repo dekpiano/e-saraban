@@ -203,9 +203,9 @@
 
     <?php 
     $fileExt = !empty($document['file_path']) ? strtolower(pathinfo($document['file_path'], PATHINFO_EXTENSION)) : '';
-    $fileUrl = !empty($document['file_path']) ? base_url($document['file_path']) : '';
-    $rawFileUrl = !empty($document['raw_file_path']) ? base_url($document['raw_file_path']) : '';
-    $hasRawBackup = !empty($document['raw_file_path']) && file_exists(FCPATH . $document['raw_file_path']);
+    $fileUrl = !empty($document['file_path']) ? document_url($document['file_path']) : '';
+    $rawFileUrl = !empty($document['raw_file_path']) ? document_url($document['raw_file_path']) : '';
+    $hasRawBackup = !empty($document['raw_file_path']);
     $signedRoutes = array_filter($routes, function($r) {
         return $r['status'] === 'signed';
     });
@@ -494,7 +494,7 @@
                         
                         <!-- ตรายางรับหนังสือราชการแบบประทับถาวร (Official Rubber Stamp) -->
                         <?php 
-                        $isPermanentlyImprinted = !empty($document['file_path']) && file_exists(FCPATH . $document['file_path']);
+                        $isPermanentlyImprinted = !empty($document['file_path']) && (str_starts_with($document['file_path'], 'saraban/') || file_exists(FCPATH . $document['file_path']));
                         $showStampDirectly = $hasStamp && !$isPermanentlyImprinted;
                         ?>
                         <?php if ($canEditStamp || $showStampDirectly): ?>

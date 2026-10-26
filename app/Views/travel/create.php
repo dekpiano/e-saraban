@@ -135,10 +135,38 @@
                 <form action="<?= base_url('admin/travel/store') ?>" method="POST" enctype="multipart/form-data">
                     <?= csrf_field() ?>
                     <input type="hidden" name="memo_id" value="<?= (int)($memoId ?? 0) ?>">
-                    <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
-                        <div><strong><i class="bx bx-file me-1"></i>บันทึกข้อความต้นเรื่อง</strong><div class="small mt-1"><?= esc(($memo['doc_no'] ?? '-') . ' · ' . ($memo['title'] ?? '-')) ?></div></div>
-                        <a class="btn btn-sm btn-outline-primary" target="_blank" href="<?= base_url('admin/memos/' . (int)($memoId ?? 0)) ?>">เปิดบันทึกข้อความ</a>
-                    </div>
+                    <input type="hidden" name="memo_type" value="<?= !empty($memoId) ? 'system' : 'external' ?>">
+
+                    <?php if (!empty($memoId) && !empty($memo)): ?>
+                        <div class="alert alert-info border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4" style="background: #eef2ff; border-left: 4px solid #6366f1 !important;">
+                            <div>
+                                <strong class="text-primary"><i class="bx bx-file me-1"></i>บันทึกข้อความต้นเรื่อง (จัดทำในระบบ e-Saraban)</strong>
+                                <div class="small mt-1 text-dark fw-semibold"><?= esc(($memo['doc_no'] ?? '-') . ' · ' . ($memo['title'] ?? '-')) ?></div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-primary" target="_blank" href="<?= base_url('admin/memos/' . (int)($memoId ?? 0)) ?>">
+                                    <i class="bx bx-show me-1"></i> เปิดดูบันทึกข้อความ
+                                </a>
+                                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('admin/travel/create?memo_type=external') ?>" title="เปลี่ยนเป็นแนบเอกสารที่ทำมาเอง">
+                                    <i class="bx bx-transfer-alt me-1"></i> สลับเป็นแนบไฟล์ที่ทำมาเอง
+                                </a>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-warning border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4" style="background: #fff8e6; border-left: 4px solid #f59e0b !important; color: #78350f;">
+                            <div>
+                                <strong class="d-flex align-items-center fs-6 text-warning-emphasis">
+                                    <i class="bx bx-paperclip me-1 fs-5"></i> บันทึกข้อความต้นเรื่อง: จัดทำเอกสารมาเอง
+                                </strong>
+                                <div class="small mt-1 text-dark">
+                                    ท่านเลือกยื่นขอไปราชการโดยใช้บันทึกข้อความ/เอกสารที่จัดทำมาเอง โปรดแนบไฟล์เอกสาร PDF ในช่องแนบไฟล์ด้านล่าง
+                                </div>
+                            </div>
+                            <a class="btn btn-sm btn-primary fw-semibold shadow-xs" href="<?= base_url('admin/memos/create?purpose=travel_request') ?>">
+                                <i class="bx bx-edit me-1"></i> ต้องการพิมพ์บันทึกข้อความในระบบแทน คลิกที่นี่
+                            </a>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- คำชี้แจงการกรอกข้อมูล -->
                     <div class="alert alert-primary d-flex align-items-center mb-4 py-2 px-3 shadow-sm border-0" style="background: #e7e7ff; color: #43449e;">

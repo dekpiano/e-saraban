@@ -110,7 +110,7 @@
                     <i class="bx bx-printer me-1"></i> พิมพ์ขนาด A4
                 </a>
                 <?php if (!empty($document['file_path'])): ?>
-                    <a href="<?= base_url($document['file_path']) ?>" target="_blank" class="btn btn-outline-danger btn-sm">
+                    <a href="<?= document_url($document['file_path']) ?>" target="_blank" class="btn btn-outline-danger btn-sm">
                         <i class="bx bxs-file-pdf me-1"></i> ดูไฟล์ PDF แนบ
                     </a>
                 <?php endif; ?>

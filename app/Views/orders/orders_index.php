@@ -229,7 +229,7 @@
                                 </td>
                                 <td class="text-center">
                                     <?php if (!empty($o['file_path'])): ?>
-                                        <a href="<?= base_url($o['file_path']) ?>" target="_blank" class="badge bg-danger text-white fw-bold px-2.5 py-1.5 shadow-xs" title="เปิดดูเอกสาร PDF คำสั่งฉบับจริง">
+                                        <a href="<?= document_url($o['file_path']) ?>" target="_blank" class="badge bg-danger text-white fw-bold px-2.5 py-1.5 shadow-xs" title="เปิดดูเอกสาร PDF คำสั่งฉบับจริง">
                                             <i class="bx bxs-file-pdf me-1"></i> PDF
                                         </a>
                                     <?php else: ?>

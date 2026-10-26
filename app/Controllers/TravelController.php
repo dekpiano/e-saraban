@@ -99,14 +99,21 @@ class TravelController extends BaseController
     {
         $userId = (int)session()->get('user_id');
         $memoId = (int)$this->request->getGet('memo_id');
-        if ($memoId <= 0) {
-            return redirect()->to('/admin/memos/create?purpose=travel_request')->with('warning', 'ก่อนยื่นคำขอไปราชการ กรุณาสร้างบันทึกข้อความก่อน');
+        $memoType = $this->request->getGet('memo_type') ?: ($this->request->getGet('external_memo') ? 'external' : '');
+        $isExternalMemo = ($memoType === 'external' || ($memoId <= 0 && $this->request->getGet('external_memo') == '1'));
+
+        $memo = null;
+        if ($memoId > 0) {
+            $memo = (new \App\Models\DocumentModel())->find($memoId);
+            $isOfficer = in_array(session()->get('role'), ['super_admin', 'admin', 'saraban', 'executive'], true);
+            if (!$memo || ($memo['doc_type'] ?? '') !== 'internal' || (!$isOfficer && (int)$memo['created_by'] !== $userId)) {
+                return redirect()->to('/admin/memos/create?purpose=travel_request')->with('error', 'ไม่พบบันทึกข้อความที่ถูกต้อง หรือคุณไม่มีสิทธิ์ใช้บันทึกข้อความฉบับนี้');
+            }
+        } elseif (!$isExternalMemo) {
+            // ยังไม่ได้ระบุ ให้พาไปหน้าถามตัวเลือกบันทึกข้อความ
+            return redirect()->to('/admin/memos/create?purpose=travel_request');
         }
-        $memo = (new \App\Models\DocumentModel())->find($memoId);
-        $isOfficer = in_array(session()->get('role'), ['super_admin', 'admin', 'saraban', 'executive'], true);
-        if (!$memo || ($memo['doc_type'] ?? '') !== 'internal' || (!$isOfficer && (int)$memo['created_by'] !== $userId)) {
-            return redirect()->to('/admin/memos/create?purpose=travel_request')->with('error', 'ไม่พบบันทึกข้อความที่ถูกต้อง หรือคุณไม่มีสิทธิ์ใช้บันทึกข้อความฉบับนี้');
-        }
+
         $user          = $this->userModel->getUserWithDetails($userId);
         $allUsers      = $this->userModel->getAllActiveUsers();
         $personnelList = $this->userModel->getPersonnelForSelection();
@@ -119,6 +126,7 @@ class TravelController extends BaseController
             'nextDocNo'     => $nextDocNo,
             'memoId'        => $memoId,
             'memo'          => $memo,
+            'memoType'      => $isExternalMemo ? 'external' : 'system',
         ]);
     }
 
@@ -129,26 +137,30 @@ class TravelController extends BaseController
         $sessionRole   = session()->get('role');
         $isOfficer     = in_array($sessionRole, ['super_admin', 'admin', 'saraban', 'executive'], true);
         $memoId        = (int)$this->request->getPost('memo_id');
-        $memo          = $memoId > 0 ? (new \App\Models\DocumentModel())->find($memoId) : null;
+        $memoType      = $this->request->getPost('memo_type') ?: ($memoId > 0 ? 'system' : 'external');
+        $isExternalMemo = ($memoType === 'external' || $memoId <= 0);
+
+        $memo          = null;
+        $requestMemoLink = null;
         $dbForMemo     = \Config\Database::connect();
-        if ($memoId <= 0 || !$memo || ($memo['doc_type'] ?? '') !== 'internal' || (!$isOfficer && (int)$memo['created_by'] !== (int)$sessionUserId)) {
-            $error = 'กรุณาจัดทำและบันทึกข้อความต้นเรื่องก่อนยื่นคำขอไปราชการ';
-            if ($this->request->isAJAX()) {
-                return $this->response->setJSON(['status' => 'error', 'message' => $error, 'redirect' => base_url('admin/memos/create?purpose=travel_request')])->setStatusCode(400);
+
+        if (!$isExternalMemo) {
+            $memo = $memoId > 0 ? (new \App\Models\DocumentModel())->find($memoId) : null;
+            if ($memoId <= 0 || !$memo || ($memo['doc_type'] ?? '') !== 'internal' || (!$isOfficer && (int)$memo['created_by'] !== (int)$sessionUserId)) {
+                $error = 'กรุณาจัดทำและบันทึกข้อความต้นเรื่องก่อนยื่นคำขอไปราชการ';
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON(['status' => 'error', 'message' => $error, 'redirect' => base_url('admin/memos/create?purpose=travel_request')])->setStatusCode(400);
+                }
+                return redirect()->to('/admin/memos/create?purpose=travel_request')->with('error', $error);
             }
-            return redirect()->to('/admin/memos/create?purpose=travel_request')->with('error', $error);
-        }
-        if (!$dbForMemo->tableExists('document_links')) {
-            return redirect()->back()->withInput()->with('error', 'ยังไม่ได้ติดตั้งตารางเชื่อมโยงเอกสาร กรุณาติดตั้ง document_links ก่อน');
-        }
-        $requestMemoLink = (new \App\Models\DocumentLinkModel())->where('source_type', 'document')
-            ->where('source_id', (int)$memoId)
-            ->where('target_type', 'travel_request')
-            ->where('target_id', 0)
-            ->where('relation_type', 'request_memo')
-            ->first();
-        if (!$requestMemoLink) {
-            return redirect()->to('/admin/memos/create?purpose=travel_request')->with('error', 'บันทึกข้อความฉบับนี้ไม่ได้จัดทำสำหรับคำขอไปราชการ กรุณาสร้างบันทึกข้อความต้นเรื่องก่อน');
+            if ($dbForMemo->tableExists('document_links')) {
+                $requestMemoLink = (new \App\Models\DocumentLinkModel())->where('source_type', 'document')
+                    ->where('source_id', (int)$memoId)
+                    ->where('target_type', 'travel_request')
+                    ->where('target_id', 0)
+                    ->where('relation_type', 'request_memo')
+                    ->first();
+            }
         }
 
         // ตรวจสอบว่าเป็นการบันทึกแทนครู/บุคลากรหรือไม่
@@ -296,7 +308,7 @@ class TravelController extends BaseController
         ];
 
         $travelId = $this->travelModel->insert($travelData);
-        if ($travelId) {
+        if ($travelId && !empty($requestMemoLink)) {
             $linkUpdated = (new \App\Models\DocumentLinkModel())->update((int)$requestMemoLink['id'], [
                 'target_id'  => (int)$travelId,
                 'created_at' => date('Y-m-d H:i:s'),
@@ -974,163 +986,21 @@ class TravelController extends BaseController
     }
 
     /**
-     * Helper function to upload a file to the remote server via upload.php (รองรับ Chunked Upload อัตโนมัติ)
+     * Helper function to upload a file to the remote server via RemoteUploadService
      */
     private function _uploadFileToServer($file, $remotePath, $originalName)
     {
-        $uploadUrl = env('upload.server.url') ?: 'https://skj.nsnpao.go.th/upload.php';
-        $token     = (string) env('upload.server.token');
-
-        $filePath   = $file->getTempName();
-        $fileSize   = filesize($filePath);
-        $chunkLimit = 750 * 1024; // 750 KB ต่อชิ้น (ปลอดภัย ไม่เกิน 1 MB Nginx limit แน่นอน)
-
-        // กรณีไฟล์ขนาดเล็กกว่า 750 KB ส่งแบบปกติได้ทันที
-        if ($fileSize <= $chunkLimit) {
-            try {
-                $client = \Config\Services::curlrequest();
-                $postData = [
-                    'path' => $remotePath,
-                    'file' => new \CURLFile($filePath, $file->getMimeType(), $originalName)
-                ];
-                $headers = ['X-Auth-Token' => $token];
-
-                $response = $client->post($uploadUrl, [
-                    'multipart'   => $postData,
-                    'headers'     => $headers,
-                    'http_errors' => false,
-                    'timeout'     => 60,
-                ]);
-
-                $statusCode = $response->getStatusCode();
-                $rawBody    = $response->getBody();
-                $body       = json_decode($rawBody, true);
-
-                if ($statusCode === 200 && isset($body['status']) && $body['status'] === 'success') {
-                    return [
-                        'status'   => 'success',
-                        'filename' => $body['filename']
-                    ];
-                }
-
-                $errorMessage = $body['message'] ?? ("Server Error (Status: {$statusCode}). " . substr(strip_tags($rawBody), 0, 150));
-                log_message('error', "File upload failed: {$errorMessage} (Status: {$statusCode})");
-                return ['status' => 'error', 'message' => $errorMessage];
-            } catch (\Exception $e) {
-                log_message('error', 'cURL Error during upload: ' . $e->getMessage());
-                return ['status' => 'error', 'message' => $e->getMessage()];
-            }
-        }
-
-        // กรณีไฟล์ใหญ่กว่า 750 KB: ทำการหั่นไฟล์ (Chunking) แล้วส่งทีละชิ้นไปประกอบร่างที่ server ปลายทาง
-        $totalChunks = (int)ceil($fileSize / $chunkLimit);
-        $fileHandle  = fopen($filePath, 'rb');
-        if (!$fileHandle) {
-            return ['status' => 'error', 'message' => 'ไม่สามารถเปิดอ่านไฟล์เพื่อทำการแบ่งส่วนข้อมูลได้'];
-        }
-
-        $uniqueDesiredFilename = pathinfo($originalName, PATHINFO_FILENAME) . '_' . uniqid() . '.' . pathinfo($originalName, PATHINFO_EXTENSION);
-        $tempChunkPath = WRITEPATH . 'uploads/temp_chunk_' . uniqid() . '.tmp';
-
-        try {
-            $client = \Config\Services::curlrequest();
-            $headers = ['X-Auth-Token' => $token];
-
-            for ($chunkIndex = 0; $chunkIndex < $totalChunks; $chunkIndex++) {
-                $chunkData = fread($fileHandle, $chunkLimit);
-                file_put_contents($tempChunkPath, $chunkData);
-
-                $postData = [
-                    'path'             => $remotePath,
-                    'chunk_index'      => (string)$chunkIndex,
-                    'total_chunks'     => (string)$totalChunks,
-                    'filename'         => $uniqueDesiredFilename,
-                    'desired_filename' => $uniqueDesiredFilename,
-                    'file'             => new \CURLFile($tempChunkPath, 'application/octet-stream', $uniqueDesiredFilename)
-                ];
-
-                $response = $client->post($uploadUrl, [
-                    'multipart'   => $postData,
-                    'headers'     => $headers,
-                    'http_errors' => false,
-                    'timeout'     => 60,
-                ]);
-
-                if (file_exists($tempChunkPath)) {
-                    @unlink($tempChunkPath);
-                }
-
-                $statusCode = $response->getStatusCode();
-                $rawBody    = $response->getBody();
-                $body       = json_decode($rawBody, true);
-
-                if ($statusCode !== 200) {
-                    fclose($fileHandle);
-                    $errMsg = $body['message'] ?? "การส่งส่วนที่ " . ($chunkIndex + 1) . "/{$totalChunks} ล้มเหลว (Status: {$statusCode})";
-                    return ['status' => 'error', 'message' => $errMsg];
-                }
-
-                // Chunk สุดท้ายจะรวมไฟล์เสร็จและได้ status = success
-                if ($chunkIndex === $totalChunks - 1) {
-                    fclose($fileHandle);
-                    if (isset($body['status']) && $body['status'] === 'success') {
-                        return [
-                            'status'   => 'success',
-                            'filename' => $body['filename'] ?? $uniqueDesiredFilename
-                        ];
-                    }
-                    return ['status' => 'error', 'message' => $body['message'] ?? 'รวมไฟล์ชิ้นส่วนที่เซิร์ฟเวอร์ปลายทางไม่สำเร็จ'];
-                }
-            }
-
-            fclose($fileHandle);
-            return ['status' => 'error', 'message' => 'เกิดข้อผิดพลาดในการประมวลผล Chunked Upload'];
-        } catch (\Exception $e) {
-            if (is_resource($fileHandle)) {
-                fclose($fileHandle);
-            }
-            if (file_exists($tempChunkPath)) {
-                @unlink($tempChunkPath);
-            }
-            log_message('error', 'cURL Chunk Upload Error: ' . $e->getMessage());
-            return ['status' => 'error', 'message' => $e->getMessage()];
-        }
+        $remoteService = new \App\Services\RemoteUploadService();
+        return $remoteService->uploadUploadedFile($file, $remotePath, $originalName);
     }
 
     /**
-     * Helper function to delete a file from the remote server via delete.php
+     * Helper function to delete a file from the remote server via RemoteUploadService
      */
     private function _deleteFileFromServer($remoteFilePath)
     {
-        $deleteUrl = env('upload.server.delete.url') ?: 'https://skj.nsnpao.go.th/delete.php';
-        $token     = (string) env('upload.server.token');
-
-        try {
-            $client = \Config\Services::curlrequest();
-            $pathParts = pathinfo($remoteFilePath);
-            $remotePath = $pathParts['dirname'] ?? '';
-            $filename   = $pathParts['basename'] ?? '';
-
-            $postData = [
-                'path'     => $remotePath,
-                'filename' => $filename
-            ];
-
-            $headers = [
-                'X-Auth-Token' => $token
-            ];
-
-            $client->post($deleteUrl, [
-                'form_params' => $postData,
-                'headers'     => $headers,
-                'http_errors' => false,
-                'timeout'     => 15,
-            ]);
-            return true;
-        } catch (\Exception $e) {
-            log_message('error', 'cURL Error during delete: ' . $e->getMessage());
-            return false;
-        }
+        $remoteService = new \App\Services\RemoteUploadService();
+        return $remoteService->deleteFile($remoteFilePath);
     }
 
     // ตรวจสอบความซ้ำซ้อนของเลขที่หนังสือ (doc_no) และเรื่อง (title) ผ่าน AJAX

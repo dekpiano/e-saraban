@@ -637,152 +637,20 @@ class TravelReportController extends BaseController
     }
 
     /**
-     * Helper ฟังก์ชันอัปโหลดไฟล์ไปยัง Remote Server พร้อมรองรับ Chunked Upload
+     * Helper ฟังก์ชันอัปโหลดไฟล์ไปยัง Remote Server ผ่าน RemoteUploadService
      */
     private function _uploadFileToServer($file, $remotePath, $originalName)
     {
-        $uploadUrl = env('upload.server.url') ?: 'https://skj.nsnpao.go.th/upload.php';
-        $token     = (string) env('upload.server.token');
-
-        $filePath   = $file->getTempName();
-        $fileSize   = filesize($filePath);
-        $chunkLimit = 750 * 1024;
-
-        if ($fileSize <= $chunkLimit) {
-            try {
-                $client = \Config\Services::curlrequest();
-                $postData = [
-                    'path' => $remotePath,
-                    'file' => new \CURLFile($filePath, $file->getMimeType(), $originalName)
-                ];
-                $headers = ['X-Auth-Token' => $token];
-
-                $response = $client->post($uploadUrl, [
-                    'multipart'   => $postData,
-                    'headers'     => $headers,
-                    'http_errors' => false,
-                    'timeout'     => 60,
-                ]);
-
-                $statusCode = $response->getStatusCode();
-                $rawBody    = $response->getBody();
-                $body       = json_decode($rawBody, true);
-
-                if ($statusCode === 200 && isset($body['status']) && $body['status'] === 'success') {
-                    return [
-                        'status'   => 'success',
-                        'filename' => $body['filename']
-                    ];
-                }
-
-                $errorMessage = $body['message'] ?? ("Server Error (Status: {$statusCode})");
-                log_message('error', "Report file upload failed: {$errorMessage}");
-                return ['status' => 'error', 'message' => $errorMessage];
-            } catch (\Exception $e) {
-                log_message('error', 'cURL Error during report upload: ' . $e->getMessage());
-                return ['status' => 'error', 'message' => $e->getMessage()];
-            }
-        }
-
-        // กรณีไฟล์ใหญ่กว่า 750 KB: ทำการหั่นไฟล์ (Chunking) แล้วส่งทีละชิ้นไปประกอบร่างที่ server ปลายทาง
-        $totalChunks = (int)ceil($fileSize / $chunkLimit);
-        $fileHandle  = fopen($filePath, 'rb');
-        if (!$fileHandle) {
-            return ['status' => 'error', 'message' => 'ไม่สามารถเปิดอ่านไฟล์เพื่อทำการแบ่งส่วนข้อมูลได้'];
-        }
-
-        $uniqueDesiredFilename = pathinfo($originalName, PATHINFO_FILENAME) . '_' . uniqid() . '.' . pathinfo($originalName, PATHINFO_EXTENSION);
-        $tempChunkPath = WRITEPATH . 'uploads/temp_chunk_' . uniqid() . '.tmp';
-
-        try {
-            $client = \Config\Services::curlrequest();
-            $headers = ['X-Auth-Token' => $token];
-
-            for ($chunkIndex = 0; $chunkIndex < $totalChunks; $chunkIndex++) {
-                $chunkData = fread($fileHandle, $chunkLimit);
-                file_put_contents($tempChunkPath, $chunkData);
-
-                $postData = [
-                    'path'             => $remotePath,
-                    'chunk_index'      => (string)$chunkIndex,
-                    'total_chunks'     => (string)$totalChunks,
-                    'filename'         => $uniqueDesiredFilename,
-                    'desired_filename' => $uniqueDesiredFilename,
-                    'file'             => new \CURLFile($tempChunkPath, 'application/octet-stream', $uniqueDesiredFilename)
-                ];
-
-                $response = $client->post($uploadUrl, [
-                    'multipart'   => $postData,
-                    'headers'     => $headers,
-                    'http_errors' => false,
-                    'timeout'     => 60,
-                ]);
-
-                if (file_exists($tempChunkPath)) {
-                    @unlink($tempChunkPath);
-                }
-
-                $statusCode = $response->getStatusCode();
-                $rawBody    = $response->getBody();
-                $body       = json_decode($rawBody, true);
-
-                if ($statusCode !== 200) {
-                    fclose($fileHandle);
-                    $errMsg = $body['message'] ?? "การส่งส่วนที่ " . ($chunkIndex + 1) . "/{$totalChunks} ล้มเหลว (Status: {$statusCode})";
-                    return ['status' => 'error', 'message' => $errMsg];
-                }
-
-                // Chunk สุดท้ายจะรวมไฟล์เสร็จและได้ status = success
-                if ($chunkIndex === $totalChunks - 1) {
-                    fclose($fileHandle);
-                    if (isset($body['status']) && $body['status'] === 'success') {
-                        return [
-                            'status'   => 'success',
-                            'filename' => $body['filename'] ?? $uniqueDesiredFilename
-                        ];
-                    }
-                    return ['status' => 'error', 'message' => $body['message'] ?? 'รวมไฟล์ชิ้นส่วนที่เซิร์ฟเวอร์ปลายทางไม่สำเร็จ'];
-                }
-            }
-
-            fclose($fileHandle);
-            return ['status' => 'error', 'message' => 'เกิดข้อผิดพลาดในการประมวลผล Chunked Upload'];
-        } catch (\Exception $e) {
-            if (is_resource($fileHandle)) {
-                fclose($fileHandle);
-            }
-            if (file_exists($tempChunkPath)) {
-                @unlink($tempChunkPath);
-            }
-            log_message('error', 'cURL Chunk Upload Error in TravelReportController: ' . $e->getMessage());
-            return ['status' => 'error', 'message' => $e->getMessage()];
-        }
+        $remoteService = new \App\Services\RemoteUploadService();
+        return $remoteService->uploadUploadedFile($file, $remotePath, $originalName);
     }
 
     /**
-     * Helper ฟังก์ชันลบไฟล์บนเซิร์ฟเวอร์หลัก
+     * Helper ฟังก์ชันลบไฟล์บนเซิร์ฟเวอร์หลัก ผ่าน RemoteUploadService
      */
     private function _deleteFileFromServer($remoteFilePath)
     {
-        $deleteUrl = env('upload.server.delete.url') ?: 'https://skj.nsnpao.go.th/delete.php';
-        $token     = (string) env('upload.server.token');
-
-        try {
-            $client = \Config\Services::curlrequest();
-            $client->post($deleteUrl, [
-                'form_params' => [
-                    'path' => $remoteFilePath
-                ],
-                'headers' => [
-                    'X-Auth-Token' => $token
-                ],
-                'http_errors' => false,
-                'timeout'     => 15
-            ]);
-            return true;
-        } catch (\Exception $e) {
-            log_message('error', 'Error deleting file from server: ' . $e->getMessage());
-            return false;
-        }
+        $remoteService = new \App\Services\RemoteUploadService();
+        return $remoteService->deleteFile($remoteFilePath);
     }
 }

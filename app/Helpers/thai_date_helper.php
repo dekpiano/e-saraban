@@ -229,12 +229,26 @@ if (!function_exists('document_url')) {
         if (preg_match('#^https?://#i', $filePath)) {
             return $filePath;
         }
-        // If stored under remote upload path (saraban/... or travel/...)
-        $baseUrl = env('upload.server.baseurl') ?: 'https://skj.nsnpao.go.th/uploads/';
-        if (str_starts_with($filePath, 'saraban/') || str_starts_with($filePath, 'travel/')) {
-            return rtrim($baseUrl, '/') . '/' . ltrim($filePath, '/');
+
+        $cleanPath = ltrim((string)$filePath, '/');
+
+        // Remote upload paths
+        $remotePrefixes = ['saraban/', 'travel/', 'academic/', 'personnel/'];
+        foreach ($remotePrefixes as $prefix) {
+            if (str_starts_with($cleanPath, $prefix)) {
+                $baseUrl = env('upload.server.baseurl') ?: 'https://skj.nsnpao.go.th/uploads/';
+                return rtrim($baseUrl, '/') . '/' . $cleanPath;
+            }
         }
-        return base_url($filePath);
+
+        // Fallback: if file exists on local disk
+        if (file_exists(FCPATH . $cleanPath)) {
+            return base_url($cleanPath);
+        }
+
+        // Default to remote baseUrl if not found locally
+        $baseUrl = env('upload.server.baseurl') ?: 'https://skj.nsnpao.go.th/uploads/';
+        return rtrim($baseUrl, '/') . '/' . $cleanPath;
     }
 }
 

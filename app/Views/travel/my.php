@@ -383,7 +383,7 @@
                                         <i class="bx bx-wallet text-success me-1"></i> <?= esc($r['budget_type']) ?> <?= number_format($r['budget_amount'] ?? 0) ?> บาท
                                     </span>
                                     <?php if (!empty($r['file_path'])): ?>
-                                        <a href="<?= base_url($r['file_path']) ?>" target="_blank" class="d-inline-flex align-items-center text-danger text-decoration-none bg-danger bg-opacity-10 px-2 py-1 rounded">
+                                        <a href="<?= document_url($r['file_path']) ?>" target="_blank" class="d-inline-flex align-items-center text-danger text-decoration-none bg-danger bg-opacity-10 px-2 py-1 rounded">
                                             <i class="bx bxs-file-pdf me-1"></i> หนังสือแนบ
                                         </a>
                                     <?php endif; ?>

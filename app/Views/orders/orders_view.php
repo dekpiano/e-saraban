@@ -118,7 +118,7 @@
                             <span class="fw-bold text-dark small d-block mb-1">มีไฟล์สแกนคำสั่งฉบับสมบูรณ์</span>
                             <small class="text-muted">สามารถดาวน์โหลดเพื่อนำไปแนบในการขอไปราชการได้</small>
                         </div>
-                        <a href="<?= base_url($order['file_path']) ?>" target="_blank" class="btn btn-danger btn-sm w-100 fw-bold py-2 shadow-xs">
+                        <a href="<?= document_url($order['file_path']) ?>" target="_blank" class="btn btn-danger btn-sm w-100 fw-bold py-2 shadow-xs">
                             <i class="bx bx-download me-1"></i> เปิด / ดาวน์โหลดไฟล์ PDF คำสั่ง
                         </a>
                     <?php else: ?>

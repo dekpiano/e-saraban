@@ -249,13 +249,33 @@
         </div>
     </div>
 
-        <?php if (in_array(($workflowPurpose ?? ''), ['travel_request', 'travel_report'], true)): ?>
+        <?php if (($workflowPurpose ?? '') === 'travel_request'): ?>
+            <div class="container my-2 no-print" style="max-width: 21cm;">
+                <div class="alert alert-info border-0 shadow-sm mb-0 py-2.5 px-3 d-flex flex-wrap align-items-center justify-content-between gap-2" style="background: #eef2ff; border-left: 4px solid #6366f1 !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bx bx-info-circle fs-4 text-primary"></i>
+                        <div class="small">
+                            <strong class="text-dark">ยื่นขออนุมัติไปราชการ:</strong> กำลังพิมพ์บันทึกข้อความในระบบ e-Saraban<br>
+                            <span class="text-muted">หากท่านมีเอกสารหรือบันทึกข้อความที่จัดทำมาเองแล้ว สามารถข้ามขั้นตอนนี้ได้</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#travelMemoChoiceModal">
+                            <i class="bx bx-help-circle me-1"></i> เลือกรูปแบบ
+                        </button>
+                        <a href="<?= base_url('admin/travel/create?memo_type=external') ?>" class="btn btn-warning btn-sm text-dark fw-bold shadow-xs">
+                            <i class="bx bx-paperclip me-1"></i> มีบันทึกข้อความที่ทำมาเองแล้ว (ข้ามไปแนบไฟล์) ➔
+                        </a>
+                    </div>
+                </div>
+            </div>
+        <?php elseif (($workflowPurpose ?? '') === 'travel_report'): ?>
             <div class="container my-2 no-print" style="max-width: 21cm;">
                 <div class="alert alert-info border-0 shadow-sm mb-0 py-2 px-3 d-flex align-items-center">
                     <i class="bx bx-link fs-4 me-2"></i>
                     <div class="small">
                         <strong>บันทึกข้อความสำหรับงานที่เกี่ยวข้อง:</strong>
-                        <?= ($workflowPurpose === 'travel_request') ? 'เมื่อบันทึกข้อความแล้ว ระบบจะพาไปกรอกคำขออนุมัติไปราชการต่อ และเชื่อมเอกสารเข้าด้วยกันโดยอัตโนมัติ' : 'เมื่อบันทึกข้อความแล้ว ระบบจะพาไปกรอกรายงานผลไปราชการต่อ และเชื่อมเอกสารเข้ากับคำขอต้นเรื่อง' ?>
+                        เมื่อบันทึกข้อความแล้ว ระบบจะพาไปกรอกรายงานผลไปราชการต่อ และเชื่อมเอกสารเข้ากับคำขอต้นเรื่อง
                     </div>
                 </div>
             </div>
@@ -1530,6 +1550,74 @@
                 </button>
             </div>
         </div>
+
+    <?php if (($workflowPurpose ?? '') === 'travel_request'): ?>
+    <!-- Modal ถามรูปแบบบันทึกข้อความสำหรับยื่นไปราชการ -->
+    <div class="modal fade" id="travelMemoChoiceModal" tabindex="-1" aria-labelledby="travelMemoChoiceModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem; overflow: hidden;">
+                <div class="modal-header border-0 pb-0 pt-4 px-4 bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 text-primary">
+                            <i class="bx bx-briefcase fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-0" id="travelMemoChoiceModalLabel">เลือกรูปแบบบันทึกข้อความ (ขออนุมัติไปราชการ)</h5>
+                            <small class="text-muted">กรุณาเลือกรูปแบบที่สอดคล้องกับการดำเนินงานของท่าน</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-3">
+                        <!-- ตัวเลือก 1: พิมพ์ในระบบ -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border border-2 border-primary shadow-xs position-relative" style="border-radius: 1rem; cursor: pointer; transition: all 0.2s;" onclick="chooseMemoMode('system')" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+                                <div class="card-body p-4 text-center d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 58px; height: 58px;">
+                                            <i class="bx bx-edit fs-2"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-dark mb-2">พิมพ์บันทึกข้อความในระบบ</h6>
+                                        <p class="small text-muted mb-3" style="line-height: 1.5;">
+                                            สร้างแบบฟอร์มบันทึกข้อความมาตรฐาน e-Saraban พิมพ์เนื้อหา จัดย่อหน้า และลงนามดิจิทัล เมื่อเสร็จสิ้นระบบจะส่งต่อเข้าสู่คำขอไปราชการอัตโนมัติ
+                                        </p>
+                                    </div>
+                                    <button type="button" class="btn btn-primary w-100 fw-bold py-2 shadow-xs" onclick="chooseMemoMode('system')">
+                                        <i class="bx bx-check me-1"></i> เริ่มพิมพ์ในระบบตอนนี้
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ตัวเลือก 2: ทำมาเองจากภายนอก -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border border-2 border-warning shadow-xs position-relative" style="border-radius: 1rem; cursor: pointer; transition: all 0.2s; background: #fffcf5;" onclick="chooseMemoMode('external')" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+                                <div class="card-body p-4 text-center d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="rounded-circle bg-warning text-dark d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 58px; height: 58px;">
+                                            <i class="bx bx-paperclip fs-2"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-dark mb-2">มีบันทึกข้อความที่ทำมาเอง</h6>
+                                        <p class="small text-muted mb-3" style="line-height: 1.5;">
+                                            สำหรับผู้ที่มีเอกสารหรือไฟล์ PDF บันทึกข้อความที่พิมพ์จากภายนอกเรียบร้อยแล้ว ไม่ต้องพิมพ์ซ้ำในระบบ ข้ามไปกรอกคำขอและแนบไฟล์ได้ทันที
+                                        </p>
+                                    </div>
+                                    <a href="<?= base_url('admin/travel/create?memo_type=external') ?>" class="btn btn-warning text-dark fw-bold w-100 py-2 shadow-xs">
+                                        <i class="bx bx-arrow-to-right me-1"></i> ข้ามไปแนบไฟล์ & ยื่นคำขอ ➔
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4 bg-light justify-content-center">
+                    <small class="text-muted"><i class="bx bx-info-circle me-1"></i>ท่านสามารถสลับรูปแบบไปมาระหว่างจัดทำได้ตลอดเวลา</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <script src="<?= base_url('assets/vendor/libs/jquery/jquery.js') ?>"></script>
     <script src="<?= base_url('assets/vendor/js/bootstrap.js') ?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -1546,7 +1634,27 @@
         <?php if (session()->getFlashdata('warning')): ?>
             AppAlert.warning(<?= json_encode(session()->getFlashdata('warning')) ?>, 'ข้อควรทราบ');
         <?php endif; ?>
+
+        <?php if (($workflowPurpose ?? '') === 'travel_request'): ?>
+        const choiceModalEl = document.getElementById('travelMemoChoiceModal');
+        if (choiceModalEl && typeof bootstrap !== 'undefined') {
+            const memoChoiceModal = new bootstrap.Modal(choiceModalEl);
+            memoChoiceModal.show();
+        }
+        <?php endif; ?>
     });
+
+    function chooseMemoMode(mode) {
+        if (mode === 'system') {
+            const modalEl = document.getElementById('travelMemoChoiceModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const instance = bootstrap.Modal.getInstance(modalEl);
+                if (instance) instance.hide();
+            }
+        } else if (mode === 'external') {
+            window.location.href = "<?= base_url('admin/travel/create?memo_type=external') ?>";
+        }
+    }
     </script>
 </body>
 

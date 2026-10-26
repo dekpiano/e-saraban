@@ -614,9 +614,13 @@ class InternalMemoController extends BaseController
         $file = $this->request->getFile('doc_file');
         $filePath = null;
         if ($file && $file->isValid() && !$file->hasMoved()) {
-            $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/documents', $newName);
-            $filePath = 'uploads/documents/' . $newName;
+            $ext = strtolower($file->getExtension());
+            $newName = 'memo_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $remoteUploadService = new \App\Services\RemoteUploadService();
+            $uploadResult = $remoteUploadService->uploadUploadedFile($file, 'saraban/memos', $newName);
+            if ($uploadResult['status'] === 'success') {
+                $filePath = $uploadResult['filePath'];
+            }
         }
 
         // จัดการลายเซ็นออนไลน์ของผู้เขียน (ถ้าเลือกใช้งาน)

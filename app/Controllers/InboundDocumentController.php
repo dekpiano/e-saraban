@@ -167,6 +167,7 @@ class InboundDocumentController extends BaseController
         // จัดการอัปโหลดไฟล์สแกน PDF หรือรูปภาพ
         $file = $this->request->getFile('doc_file');
         $filePath = null;
+        $rawFilePath = null;
 
         if ($file && $file->isValid() && !$file->hasMoved()) {
             $ext = strtolower($file->getExtension());
@@ -176,18 +177,16 @@ class InboundDocumentController extends BaseController
             $uniqueId = uniqid() . '_' . time();
             $newName = 'inbound_' . $uniqueId . '.' . $ext;
             $rawName = 'raw_inbound_' . $uniqueId . '.' . $ext;
-            $uploadDir = FCPATH . 'uploads/documents';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-            $file->move($uploadDir, $newName);
-            $filePath = 'uploads/documents/' . $newName;
 
-            // สำรองไฟล์ต้นฉบับสะอาดไว้ (สำหรับให้ จนท. ขยับหรือสแตมป์ใหม่ได้ก่อน ผอ. เกษียน)
-            $fullDiskPath = $uploadDir . DIRECTORY_SEPARATOR . $newName;
-            $fullRawPath  = $uploadDir . DIRECTORY_SEPARATOR . $rawName;
+            // บันทึกลงโฟลเดอร์ชั่วคราวในเครื่องเพื่อประมวลผลตรายาง
+            $tempDir = WRITEPATH . 'uploads/temp';
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0777, true);
+            }
+            $file->move($tempDir, $newName);
+            $fullDiskPath = $tempDir . DIRECTORY_SEPARATOR . $newName;
+            $fullRawPath  = $tempDir . DIRECTORY_SEPARATOR . $rawName;
             @copy($fullDiskPath, $fullRawPath);
-            $rawFilePath = 'uploads/documents/' . $rawName;
 
             // ตรวจสอบว่าเปิดโหมด "มีตรายางรับ" หรือไม่
             $hasStamp = $this->request->getPost('has_receive_stamp') !== null ? (int)$this->request->getPost('has_receive_stamp') : 1;
@@ -209,11 +208,30 @@ class InboundDocumentController extends BaseController
                 $stampService = new \App\Services\DocumentStampService();
                 $imprinted = $stampService->imprintReceiveStamp($fullDiskPath, $stampData, $coords);
                 if ($imprinted && file_exists($imprinted)) {
-                    $relPath = str_replace(rtrim(FCPATH, '/\\'), '', $imprinted);
-                    $filePath = ltrim(str_replace('\\', '/', $relPath), '/');
+                    $fullDiskPath = $imprinted;
                     log_message('info', 'Document receive stamp permanently imprinted on file: ' . $imprinted);
                 }
             }
+
+            // ส่งไฟล์ขึ้นเซิร์ฟเวอร์จัดเก็บไฟล์ภายนอก (Remote Upload Server)
+            $remoteUploadService = new \App\Services\RemoteUploadService();
+            $uploadResult = $remoteUploadService->uploadLocalFile($fullDiskPath, 'saraban/inbound', $newName);
+            if ($uploadResult['status'] !== 'success') {
+                @unlink($fullDiskPath);
+                @unlink($fullRawPath);
+                return redirect()->back()->withInput()->with('error', $uploadResult['message']);
+            }
+            $filePath = $uploadResult['filePath'];
+
+            // อัปโหลดไฟล์ Raw สำรองขึ้นเซิร์ฟเวอร์
+            $rawUploadResult = $remoteUploadService->uploadLocalFile($fullRawPath, 'saraban/inbound', $rawName);
+            if ($rawUploadResult['status'] === 'success') {
+                $rawFilePath = $rawUploadResult['filePath'];
+            }
+
+            // ลบไฟล์ชั่วคราวในเครื่องเพื่อประหยัดพื้นที่
+            @unlink($fullDiskPath);
+            @unlink($fullRawPath);
         }
 
         $db = \Config\Database::connect();
@@ -492,8 +510,10 @@ class InboundDocumentController extends BaseController
             $docUpdate['status'] = 'completed';
             $docUpdate['dispatch_status'] = !empty($assignedUserId) || !empty($assignedDept) ? 'dispatched' : 'pending';
 
-            // ลบไฟล์สำรอง (raw_file_path) ออก เพื่อประหยัดพื้นที่จัดเก็บบนดิสก์ เมื่อ ผอ. เกษียนอนุมัติเสร็จสิ้นแล้ว
+            // ลบไฟล์สำรอง (raw_file_path) ออก เพื่อประหยัดพื้นที่จัดเก็บ เมื่อ ผอ. เกษียนอนุมัติเสร็จสิ้นแล้ว
             if (!empty($document['raw_file_path'])) {
+                $remoteService = new \App\Services\RemoteUploadService();
+                $remoteService->deleteFile($document['raw_file_path']);
                 $rawDiskPath = FCPATH . ltrim($document['raw_file_path'], '/\\');
                 if (file_exists($rawDiskPath)) {
                     @unlink($rawDiskPath);
@@ -550,22 +570,39 @@ class InboundDocumentController extends BaseController
 
         // ตรวจสอบไฟล์สำรองดิบ (Clean Raw File)
         $rawFilePath = $document['raw_file_path'] ?? '';
-        $rawDiskPath = !empty($rawFilePath) ? FCPATH . ltrim($rawFilePath, '/\\') : '';
-        if (empty($rawDiskPath) || !file_exists($rawDiskPath)) {
+        if (empty($rawFilePath)) {
             return $this->response->setJSON([
                 'success' => false, 
                 'message' => 'ไม่พบไฟล์ต้นฉบับสำรอง (อาจถูกลบไปแล้วหลัง ผอ. สั่งการ) ไม่สามารถประทับตราใหม่ได้'
             ]);
         }
 
-        $targetFilePath = $document['file_path'] ?? '';
-        $targetDiskPath = !empty($targetFilePath) ? FCPATH . ltrim($targetFilePath, '/\\') : '';
-        if (empty($targetDiskPath)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ไม่พบไฟล์เอกสารปลายทาง']);
+        $tempDir = WRITEPATH . 'uploads/temp';
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0777, true);
         }
 
-        // คืนค่าไฟล์เป้าหมายจากไฟล์ต้นฉบับสะอาดก่อนสแตมป์ใหม่
-        if (!@copy($rawDiskPath, $targetDiskPath)) {
+        $ext = pathinfo($rawFilePath, PATHINFO_EXTENSION) ?: 'pdf';
+        $tempRawPath    = $tempDir . DIRECTORY_SEPARATOR . 'restamp_raw_' . uniqid() . '.' . $ext;
+        $tempTargetPath = $tempDir . DIRECTORY_SEPARATOR . 'restamp_target_' . uniqid() . '.' . $ext;
+
+        $rawDiskPath = FCPATH . ltrim($rawFilePath, '/\\');
+        if (file_exists($rawDiskPath)) {
+            @copy($rawDiskPath, $tempRawPath);
+        } else {
+            $rawUrl = document_url($rawFilePath);
+            $rawContent = @file_get_contents($rawUrl);
+            if ($rawContent === false) {
+                return $this->response->setJSON([
+                    'success' => false, 
+                    'message' => 'ไม่สามารถดาวน์โหลดไฟล์ต้นฉบับสำรองจากเซิร์ฟเวอร์ได้'
+                ]);
+            }
+            file_put_contents($tempRawPath, $rawContent);
+        }
+
+        if (!@copy($tempRawPath, $tempTargetPath)) {
+            @unlink($tempRawPath);
             return $this->response->setJSON(['success' => false, 'message' => 'ไม่สามารถเตรียมไฟล์ต้นฉบับสำหรับการประทับตราใหม่ได้']);
         }
 
@@ -574,6 +611,8 @@ class InboundDocumentController extends BaseController
         $scale    = (float)($this->request->getPost('receive_stamp_scale') ?: ($document['receive_stamp_scale'] ?: 1.0));
         $wPct     = $this->request->getPost('receive_stamp_w_pct') ?: '23.8%';
         $hasStamp = $this->request->getPost('has_receive_stamp') !== null ? (int)$this->request->getPost('has_receive_stamp') : 1;
+
+        $targetDiskPath = $tempTargetPath;
 
         if ($hasStamp === 1) {
             $stampData = [
@@ -592,13 +631,28 @@ class InboundDocumentController extends BaseController
             $stampService = new \App\Services\DocumentStampService();
             $imprinted = $stampService->imprintReceiveStamp($targetDiskPath, $stampData, $coords);
             if ($imprinted && file_exists($imprinted)) {
-                $relPath = str_replace(rtrim(FCPATH, '/\\'), '', $imprinted);
-                $targetFilePath = ltrim(str_replace('\\', '/', $relPath), '/');
+                $targetDiskPath = $imprinted;
             }
         }
 
+        $remoteService = new \App\Services\RemoteUploadService();
+        $targetFileName = basename($document['file_path'] ?? ('inbound_' . uniqid() . '.' . $ext));
+        $uploadResult = $remoteService->uploadLocalFile($targetDiskPath, 'saraban/inbound', $targetFileName);
+
+        @unlink($tempRawPath);
+        @unlink($tempTargetPath);
+        if ($targetDiskPath !== $tempTargetPath && file_exists($targetDiskPath)) {
+            @unlink($targetDiskPath);
+        }
+
+        if ($uploadResult['status'] !== 'success') {
+            return $this->response->setJSON(['success' => false, 'message' => $uploadResult['message']]);
+        }
+
+        $newFilePath = $uploadResult['filePath'];
+
         $updateData = [
-            'file_path'           => $targetFilePath,
+            'file_path'           => $newFilePath,
             'receive_stamp_x'     => $x,
             'receive_stamp_y'     => $y,
             'receive_stamp_scale' => $scale,
@@ -611,7 +665,7 @@ class InboundDocumentController extends BaseController
         return $this->response->setJSON([
             'success'  => true,
             'message'  => 'ปรับตำแหน่งตรายางและประทับตราลงในเอกสารเรียบร้อยแล้ว',
-            'file_url' => base_url($targetFilePath) . '?t=' . time(),
+            'file_url' => document_url($newFilePath) . '?t=' . time(),
         ]);
     }
 
@@ -637,12 +691,21 @@ class InboundDocumentController extends BaseController
             return redirect()->back()->with('error', 'หนังสือรับเข้าผ่านการเกษียนสั่งการแล้ว ไม่สามารถลบได้');
         }
 
-        // ลบไฟล์เอกสารจริง และไฟล์สำรองดิบ
-        if (!empty($document['file_path']) && file_exists(FCPATH . $document['file_path'])) {
-            @unlink(FCPATH . $document['file_path']);
+        // ลบไฟล์เอกสารจริง และไฟล์สำรองดิบบน Remote Server
+        $remoteService = new \App\Services\RemoteUploadService();
+        if (!empty($document['file_path'])) {
+            $remoteService->deleteFile($document['file_path']);
+            $localFilePath = FCPATH . ltrim($document['file_path'], '/\\');
+            if (file_exists($localFilePath)) {
+                @unlink($localFilePath);
+            }
         }
-        if (!empty($document['raw_file_path']) && file_exists(FCPATH . $document['raw_file_path'])) {
-            @unlink(FCPATH . $document['raw_file_path']);
+        if (!empty($document['raw_file_path'])) {
+            $remoteService->deleteFile($document['raw_file_path']);
+            $localRawPath = FCPATH . ltrim($document['raw_file_path'], '/\\');
+            if (file_exists($localRawPath)) {
+                @unlink($localRawPath);
+            }
         }
 
         $this->routeModel->where('document_id', $id)->delete();

@@ -142,12 +142,13 @@ class DocumentController extends BaseController
         $filePath = '';
 
         if ($file && $file->isValid() && !$file->hasMoved()) {
-            $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/documents', $newName);
-            $filePath = 'uploads/documents/' . $newName;
-        } else {
-            // Default sample file if none uploaded
-            $filePath = 'uploads/documents/sample_document.pdf';
+            $ext = strtolower($file->getExtension());
+            $newName = 'doc_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $remoteUploadService = new \App\Services\RemoteUploadService();
+            $uploadResult = $remoteUploadService->uploadUploadedFile($file, 'saraban/documents', $newName);
+            if ($uploadResult['status'] === 'success') {
+                $filePath = $uploadResult['filePath'];
+            }
         }
 
         $docData = [
@@ -429,9 +430,23 @@ class DocumentController extends BaseController
 
         $file = $this->request->getFile('doc_file');
         if ($file && $file->isValid() && !$file->hasMoved()) {
-            $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/documents', $newName);
-            $filePath = 'uploads/documents/' . $newName;
+            $ext = strtolower($file->getExtension());
+            $newName = 'doc_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $remoteUploadService = new \App\Services\RemoteUploadService();
+
+            // ลบไฟล์เดิมถ้ามี
+            if (!empty($document['file_path'])) {
+                $remoteUploadService->deleteFile($document['file_path']);
+                if (file_exists(FCPATH . ltrim($document['file_path'], '/\\'))) {
+                    @unlink(FCPATH . ltrim($document['file_path'], '/\\'));
+                }
+            }
+
+            $uploadResult = $remoteUploadService->uploadUploadedFile($file, 'saraban/documents', $newName);
+            if ($uploadResult['status'] !== 'success') {
+                return redirect()->to('/admin/documents/' . $id)->with('error', $uploadResult['message']);
+            }
+            $filePath = $uploadResult['filePath'];
 
             $this->documentModel->update($id, [
                 'file_path' => $filePath

@@ -146,12 +146,12 @@ class OrderController extends BaseController
                 return redirect()->back()->withInput()->with('error', 'เอกสารแนบคำสั่งต้องเป็นไฟล์ PDF เท่านั้น');
             }
             $newName = 'order_' . $year . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-            $uploadDir = FCPATH . 'uploads/orders/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+            $remoteUploadService = new \App\Services\RemoteUploadService();
+            $uploadResult = $remoteUploadService->uploadUploadedFile($file, 'saraban/orders', $newName);
+            if ($uploadResult['status'] !== 'success') {
+                return redirect()->back()->withInput()->with('error', $uploadResult['message']);
             }
-            $file->move($uploadDir, $newName);
-            $filePath = 'uploads/orders/' . $newName;
+            $filePath = $uploadResult['filePath'];
         }
 
         $status = $this->request->getPost('status') ?: 'published';
@@ -321,19 +321,22 @@ class OrderController extends BaseController
             return redirect()->back()->with('error', 'รองรับเฉพาะไฟล์ PDF เท่านั้น');
         }
 
-        $uploadDir = FCPATH . 'uploads/orders/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
+        $remoteUploadService = new \App\Services\RemoteUploadService();
 
-        // ลบไฟล์เดิมถ้ามี
-        if (!empty($order['file_path']) && file_exists(FCPATH . $order['file_path'])) {
-            @unlink(FCPATH . $order['file_path']);
+        // ลบไฟล์เดิมถ้ามีบน Remote Server และ Local
+        if (!empty($order['file_path'])) {
+            $remoteUploadService->deleteFile($order['file_path']);
+            if (file_exists(FCPATH . ltrim($order['file_path'], '/\\'))) {
+                @unlink(FCPATH . ltrim($order['file_path'], '/\\'));
+            }
         }
 
         $newName = 'order_' . $order['year'] . '_' . $id . '_' . time() . '.pdf';
-        $file->move($uploadDir, $newName);
-        $filePath = 'uploads/orders/' . $newName;
+        $uploadResult = $remoteUploadService->uploadUploadedFile($file, 'saraban/orders', $newName);
+        if ($uploadResult['status'] !== 'success') {
+            return redirect()->back()->with('error', $uploadResult['message']);
+        }
+        $filePath = $uploadResult['filePath'];
 
         $this->documentModel->update($id, ['file_path' => $filePath]);
         $this->logModel->log($id, $userId, 'UPLOAD_FILE', 'อัปโหลดไฟล์คำสั่งฉบับจริง (PDF)');
@@ -389,9 +392,13 @@ class OrderController extends BaseController
             return redirect()->to('/admin/orders')->with('error', 'ไม่พบข้อมูลคำสั่ง');
         }
 
-        // ลบไฟล์แนบถ้ามี
-        if (!empty($order['file_path']) && file_exists(FCPATH . $order['file_path'])) {
-            @unlink(FCPATH . $order['file_path']);
+        // ลบไฟล์แนบบน Remote Server และ Local ถ้ามี
+        if (!empty($order['file_path'])) {
+            $remoteUploadService = new \App\Services\RemoteUploadService();
+            $remoteUploadService->deleteFile($order['file_path']);
+            if (file_exists(FCPATH . ltrim($order['file_path'], '/\\'))) {
+                @unlink(FCPATH . ltrim($order['file_path'], '/\\'));
+            }
         }
 
         $this->documentModel->delete($id);
