@@ -137,3 +137,8 @@ backups/
 !/public/uploads/signatures/index.html
 !/public/uploads/signatures/.gitkeep
 
+# User Uploaded Documents
+/public/uploads/documents/*
+!/public/uploads/documents/index.html
+!/public/uploads/documents/.gitkeep
+

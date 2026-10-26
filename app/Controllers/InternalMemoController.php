@@ -91,16 +91,41 @@ class InternalMemoController extends BaseController
             ->orderBy('documents.created_at', 'ASC')
             ->findAll();
 
+        $defaultDirector = $this->userModel->getDefaultDirector();
+        $directorUser = $this->userModel->where('pers_id', $defaultDirector['pers_id'])->first();
+
         $routeMap = [];
         foreach ($memos as $memo) {
-            $routeMap[(int)$memo['id']] = $this->routeModel->getRoutesForDocument((int)$memo['id']);
+            $routes = $this->routeModel->getRoutesForDocument((int)$memo['id']);
+            // ตรวจสอบว่าเคยมีการกดบันทึกปรับเส้นทางเองหรือไม่
+            $hasManualUpdate = $this->logModel
+                ->where('document_id', (int)$memo['id'])
+                ->where('action', 'UPDATE_ROUTE')
+                ->countAllResults();
+
+            // ค่าเริ่มต้น: แสดงและกำหนดเฉพาะ ผอ. คนเดียวก่อนเสมอ
+            if (empty($routes) || ($hasManualUpdate === 0 && count($routes) !== 1)) {
+                $this->routeModel->where('document_id', (int)$memo['id'])->delete();
+                $this->routeModel->insert([
+                    'document_id'        => (int)$memo['id'],
+                    'step_order'         => 1,
+                    'user_id'            => $directorUser['id'] ?? null,
+                    'pers_id'            => $defaultDirector['pers_id'],
+                    'approver_name'      => $defaultDirector['full_name'],
+                    'personnel_position' => $defaultDirector['position_name'],
+                    'status'             => 'pending',
+                ]);
+                $routes = $this->routeModel->getRoutesForDocument((int)$memo['id']);
+            }
+            $routeMap[(int)$memo['id']] = $routes;
         }
 
-        return view('memos/saraban_inbox', [
-            'memos' => $memos,
-            'routeMap' => $routeMap,
-            'allUsers' => $this->userModel->getAllActiveUsers(),
-            'allPersonnel' => $this->userModel->getPersonnelForSelection(),
+        return view('memos/memos_saraban_inbox', [
+            'memos'           => $memos,
+            'routeMap'        => $routeMap,
+            'defaultDirector' => $defaultDirector,
+            'allUsers'        => $this->userModel->getAllActiveUsers(),
+            'allPersonnel'    => $this->userModel->getPersonnelForSelection(),
         ]);
     }
 
@@ -173,7 +198,18 @@ class InternalMemoController extends BaseController
 
         $routes = $this->routeModel->where('document_id', $id)->orderBy('step_order', 'ASC')->findAll();
         if (empty($routes)) {
-            return redirect()->to('/admin/memos/saraban-inbox')->with('error', 'รายการนี้ยังไม่มีเส้นทางเกษียน กรุณาส่งกลับให้ผู้จัดทำกำหนดเส้นทางก่อน');
+            $defaultDirector = $this->userModel->getDefaultDirector();
+            $directorUser = $this->userModel->where('pers_id', $defaultDirector['pers_id'])->first();
+            $this->routeModel->insert([
+                'document_id'        => (int)$id,
+                'step_order'         => 1,
+                'user_id'            => $directorUser['id'] ?? null,
+                'pers_id'            => $defaultDirector['pers_id'],
+                'approver_name'      => $defaultDirector['full_name'],
+                'personnel_position' => $defaultDirector['position_name'],
+                'status'             => 'pending',
+            ]);
+            $routes = $this->routeModel->where('document_id', $id)->orderBy('step_order', 'ASC')->findAll();
         }
 
         $year = (int)($document['year'] ?? ((int)date('Y') + 543));
@@ -185,28 +221,210 @@ class InternalMemoController extends BaseController
             ->where('doc_type', 'internal')
             ->where('year', $year)
             ->where('doc_no IS NOT NULL', null, false)
+            ->where('doc_no !=', '')
             ->countAllResults();
 
         $runningNo = str_pad($issuedCount + 1, 4, '0', STR_PAD_LEFT);
         $docNo = 'นว 51008.2/' . $runningNo;
         $regNo = $runningNo . '/' . $year;
 
+        // รับค่าที่ผู้ใช้อาจระบุหรือปรับแก้จากหน้าจอ
+        $customDocNo = trim((string)$this->request->getPost('doc_no'));
+        if (!empty($customDocNo)) {
+            $docNo = $customDocNo;
+        }
+
+        $customRegNo = trim((string)$this->request->getPost('internal_reg_no'));
+        if (!empty($customRegNo)) {
+            $regNo = $customRegNo;
+        }
+
+        $userId = (int)session()->get('user_id');
+        $currentTime = date('H:i') . ' น.';
+        $receiveTime = trim((string)$this->request->getPost('receive_stamp_time')) ?: $currentTime;
+        $receiveStampX = trim((string)$this->request->getPost('receive_stamp_x')) ?: '65%';
+        $receiveStampY = trim((string)$this->request->getPost('receive_stamp_y')) ?: '1.2cm';
+        $receiveStampScale = (float)($this->request->getPost('receive_stamp_scale') ?: 1.0);
+        $docDate = $this->request->getPost('doc_date') ?: date('Y-m-d');
+        $hasReceiveStamp = ($this->request->getPost('has_receive_stamp') !== null) ? (int)$this->request->getPost('has_receive_stamp') : 1;
+
         $updated = $this->documentModel->update($id, [
-            'doc_no' => $docNo,
-            'internal_reg_no' => $regNo,
-            'status' => 'routing',
-            'current_step' => 1,
+            'doc_no'              => $docNo,
+            'internal_reg_no'     => $regNo,
+            'doc_date'            => $docDate,
+            'receive_date'        => date('Y-m-d'),
+            'status'              => 'routing',
+            'current_step'        => 1,
+            'has_receive_stamp'   => $hasReceiveStamp,
+            'receive_stamp_x'     => $receiveStampX,
+            'receive_stamp_y'     => $receiveStampY,
+            'receive_stamp_scale' => $receiveStampScale,
+            'receive_stamp_time'  => $receiveTime,
+            'received_by'         => $userId,
+            'received_at'         => date('Y-m-d H:i:s'),
         ]);
 
         if (!$updated || $db->transStatus() === false) {
             $db->transRollback();
-            return redirect()->to('/admin/memos/saraban-inbox')->with('error', 'ออกเลขไม่สำเร็จ กรุณาตรวจสอบฐานข้อมูลและลองใหม่');
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'ออกเลขไม่สำเร็จ กรุณาตรวจสอบฐานข้อมูลและลองใหม่');
         }
 
-        $this->logModel->log($id, (int)session()->get('user_id'), 'ISSUE_NUMBER', 'เจ้าหน้าที่สารบรรณตรวจสอบและออกเลขบันทึกข้อความ ' . $docNo . ' จากนั้นส่งเข้าสู่เส้นทางเกษียน');
+        $this->logModel->log($id, $userId, 'ISSUE_NUMBER', 'เจ้าหน้าที่สารบรรณประทับตราและออกเลขบันทึกข้อความ ' . $docNo . ' (ทะเบียนรับ ' . $regNo . ') และส่งเข้าสู่เส้นทางเกษียน');
         $db->transCommit();
 
-        return redirect()->to('/admin/memos/' . $id)->with('success', 'ออกเลข ' . $docNo . ' และส่งเข้าสู่เส้นทางเกษียนแล้ว');
+        $redirectTo = '/admin/memos/' . $id;
+        return redirect()->to($redirectTo)->with('success', 'ประทับตราและออกเลขที่หนังสือ ' . $docNo . ' (เลขทะเบียนรับ ' . $regNo . ') เรียบร้อยแล้ว');
+    }
+
+    /** เจ้าหน้าที่สารบรรณแก้ไขการออกเลข หรือปรับตำแหน่งตรายางรับหนังสือ */
+    public function updateIssue($id)
+    {
+        if (!in_array(session()->get('role'), ['saraban', 'admin', 'super_admin'], true)) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์แก้ไขการออกเลข']);
+            }
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'คุณไม่มีสิทธิ์แก้ไขการออกเลข');
+        }
+
+        $document = $this->documentModel->where('doc_type', 'internal')->find($id);
+        if (!$document) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบเอกสาร']);
+            }
+            return redirect()->to('/admin/memos')->with('error', 'ไม่พบเอกสาร');
+        }
+
+        // หากผู้บริหารลงนามแล้ว จะไม่สามารถแก้ไขข้อมูลการออกเลขหรือตรายางได้อีกเด็ดขาด
+        $hasSigned = $this->routeModel->where('document_id', $id)->where('status', 'signed')->countAllResults() > 0;
+        if ($document['status'] === 'completed' || $hasSigned) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'เอกสารมีผู้บริหารลงนามแล้ว ล็อกการแก้ไขตามระเบียบงานสารบรรณ']);
+            }
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'เอกสารมีผู้บริหารลงนามแล้ว ล็อกการแก้ไขตามระเบียบงานสารบรรณ');
+        }
+
+        $userId = (int)session()->get('user_id');
+        $updateData = [];
+
+        // เลขที่หนังสือ
+        $customDocNo = trim((string)$this->request->getPost('doc_no'));
+        if ($customDocNo !== '') {
+            $updateData['doc_no'] = $customDocNo;
+        }
+
+        // เลขทะเบียนรับ
+        $customRegNo = trim((string)$this->request->getPost('internal_reg_no'));
+        if ($customRegNo !== '') {
+            $updateData['internal_reg_no'] = $customRegNo;
+        }
+
+        // วันที่
+        $docDate = $this->request->getPost('doc_date');
+        if (!empty($docDate)) {
+            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $docDate, $m) && (int)$m[1] > 2400) {
+                $docDate = ((int)$m[1] - 543) . '-' . $m[2] . '-' . $m[3];
+            }
+            $updateData['doc_date'] = $docDate;
+        }
+
+        // เวลา
+        $receiveTime = trim((string)$this->request->getPost('receive_stamp_time'));
+        if (!empty($receiveTime)) {
+            $updateData['receive_stamp_time'] = $receiveTime;
+        }
+
+        // ตำแหน่งและสเกลตรายาง
+        $receiveStampX = trim((string)$this->request->getPost('receive_stamp_x'));
+        if (!empty($receiveStampX)) {
+            $updateData['receive_stamp_x'] = $receiveStampX;
+        }
+
+        $receiveStampY = trim((string)$this->request->getPost('receive_stamp_y'));
+        if (!empty($receiveStampY)) {
+            $updateData['receive_stamp_y'] = $receiveStampY;
+        }
+
+        $scale = $this->request->getPost('receive_stamp_scale');
+        if ($scale !== null && $scale !== '') {
+            $updateData['receive_stamp_scale'] = (float)$scale;
+        }
+
+        if ($this->request->getPost('has_receive_stamp') !== null) {
+            $updateData['has_receive_stamp'] = (int)$this->request->getPost('has_receive_stamp');
+        }
+
+        if (empty($updateData)) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'info', 'message' => 'ไม่มีการเปลี่ยนแปลง']);
+            }
+            return redirect()->to('/admin/memos/' . $id)->with('info', 'ไม่มีข้อมูลที่เปลี่ยนแปลง');
+        }
+
+        $this->documentModel->update($id, $updateData);
+        $this->logModel->log($id, $userId, 'EDIT_ISSUE', 'เจ้าหน้าที่สารบรรณแก้ไขข้อมูลการออกเลข/ปรับตำแหน่งตรายางรับหนังสือ');
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'status'  => 'success',
+                'message' => 'อัปเดตการออกเลขและตำแหน่งตรายางเรียบร้อยแล้ว',
+                'data'    => $updateData
+            ]);
+        }
+
+        return redirect()->to('/admin/memos/' . $id)->with('success', 'แก้ไขข้อมูลการออกเลขและปรับตำแหน่งตรายางเรียบร้อยแล้ว');
+    }
+
+    /** เจ้าหน้าที่สารบรรณยกเลิกการออกเลข และดึงกลับมาเป็นรอออกเลขใหม่ */
+    public function cancelIssue($id)
+    {
+        if (!in_array(session()->get('role'), ['saraban', 'admin', 'super_admin'], true)) {
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'คุณไม่มีสิทธิ์ยกเลิกการออกเลข');
+        }
+
+        $document = $this->documentModel->where('doc_type', 'internal')->find($id);
+        if (!$document || in_array($document['status'], ['pending_saraban', 'draft'], true)) {
+            return redirect()->to('/admin/memos/' . $id)->with('warning', 'เอกสารนี้ยังไม่ได้ออกเลขสารบรรณ');
+        }
+
+        // หากผู้บริหารลงนามแล้ว จะไม่สามารถยกเลิกการออกเลขได้อีกเด็ดขาด
+        $hasSigned = $this->routeModel->where('document_id', $id)->where('status', 'signed')->countAllResults() > 0;
+        if ($document['status'] === 'completed' || $hasSigned) {
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'เอกสารมีผู้บริหารลงนามแล้ว ไม่สามารถยกเลิกการออกเลขได้');
+        }
+
+        $userId = (int)session()->get('user_id');
+        $db = \Config\Database::connect();
+        $db->transBegin();
+
+        // รีเซ็ตสถานะ routes ที่เคยลงนามให้กลับมาเป็น pending (หากประสงค์ให้เริ่มขั้นตอนใหม่)
+        $this->routeModel->where('document_id', $id)->set([
+            'status'         => 'pending',
+            'signed_at'      => null,
+            'signature_img'  => null,
+            'comment_preset' => null,
+            'comment_text'   => null,
+            'verify_hash'    => null,
+        ])->update();
+
+        // รีเซ็ตเอกสารกลับเป็น pending_saraban
+        $this->documentModel->update($id, [
+            'status'          => 'pending_saraban',
+            'current_step'    => 1,
+            'doc_no'          => null,
+            'internal_reg_no' => null,
+            'received_by'     => null,
+            'received_at'     => null,
+        ]);
+
+        $this->logModel->log($id, $userId, 'CANCEL_ISSUE', 'เจ้าหน้าที่สารบรรณยกเลิกการออกเลข ดึงบันทึกข้อความกลับสู่สถานะรอออกเลขใหม่');
+
+        if ($db->transStatus() === false) {
+            $db->transRollback();
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'ยกเลิกการออกเลขไม่สำเร็จ');
+        }
+
+        $db->transCommit();
+        return redirect()->to('/admin/memos/' . $id)->with('success', 'ยกเลิกการออกเลขเรียบร้อยแล้ว บันทึกข้อความกลับสู่สถานะรอออกเลข');
     }
 
     /**
@@ -229,50 +447,9 @@ class InternalMemoController extends BaseController
         $allPersonnel = $this->userModel->getPersonnelForSelection();
         $departments = $this->deptModel->findAll();
 
-        // เส้นทางเกษียนอิงข้อมูลบุคลากรจริงจาก tb_personnel ไม่จำกัดว่ามีบัญชี e-Saraban หรือไม่
-        $suggestedRoutePersIds = [];
-        $creator = $this->userModel->find($userId) ?? [];
-        $creatorPersonnel = null;
-        foreach ($allPersonnel as $person) {
-            if ((!empty($creator['pers_id']) && $person['pers_id'] === $creator['pers_id'])
-                || (!empty($creator['email']) && strcasecmp(trim((string)$person['pers_username']), trim((string)$creator['email'])) === 0)
-                || (!empty($creator['username']) && strcasecmp(trim((string)$person['pers_username']), trim((string)$creator['username'])) === 0)) {
-                $creatorPersonnel = $person;
-                break;
-            }
-        }
-
-        // 1) หัวหน้ากลุ่มสาระเดียวกับผู้เขียน ตรวจจาก pers_groupleade และ pers_learning
-        if ($creatorPersonnel && !empty($creatorPersonnel['pers_learning'])) {
-            foreach ($allPersonnel as $person) {
-                if (($person['pers_learning'] ?? '') === $creatorPersonnel['pers_learning']
-                    && (string)$person['pers_id'] !== (string)$creatorPersonnel['pers_id']
-                    && mb_strpos((string)($person['pers_groupleade'] ?? ''), 'หัวหน้ากลุ่มสาระ') !== false) {
-                    $suggestedRoutePersIds[] = (string)$person['pers_id'];
-                    break;
-                }
-            }
-        }
-
-        // 2) รองผู้อำนวยการจากตำแหน่งจริงใน tb_position
-        foreach ($allPersonnel as $person) {
-            if (mb_strpos((string)($person['position_name'] ?? ''), 'รองผู้อำนวยการ') !== false
-                && !in_array((string)$person['pers_id'], $suggestedRoutePersIds, true)) {
-                $suggestedRoutePersIds[] = (string)$person['pers_id'];
-                break;
-            }
-        }
-
-        // 3) ผู้อำนวยการจากตำแหน่งจริงใน tb_position
-        foreach ($allPersonnel as $person) {
-            $positionName = (string)($person['position_name'] ?? '');
-            if (mb_strpos($positionName, 'ผู้อำนวยการ') !== false
-                && mb_strpos($positionName, 'รองผู้อำนวยการ') === false
-                && !in_array((string)$person['pers_id'], $suggestedRoutePersIds, true)) {
-                $suggestedRoutePersIds[] = (string)$person['pers_id'];
-                break;
-            }
-        }
+        // เส้นทางเกษียนเริ่มต้น: กำหนดเฉพาะ ผู้อำนวยการโรงเรียน (ผอ.) คนเดียวก่อนเสมอตามมาตรฐานโรงเรียน รายชื่ออื่นสามารถเพิ่มได้ในภายหลัง
+        $defaultDirector = $this->userModel->getDefaultDirector();
+        $suggestedRoutePersIds = !empty($defaultDirector['pers_id']) ? [(string)$defaultDirector['pers_id']] : [];
 
         // Context for workflows that require an official memo before saving the business record.
         $purpose = (string)($this->request->getGet('purpose') ?? '');
@@ -411,24 +588,25 @@ class InternalMemoController extends BaseController
             }
         }
 
-        // การส่งเรื่อง (Draft หรือ Route ทันที)
+        // การส่งเรื่อง (Draft หรือ ส่งให้สารบรรณ pending_saraban)
         $action = $this->request->getPost('submit_action') ?: 'route';
         if (!in_array($action, ['draft', 'route'], true)) {
             return redirect()->back()->withInput()->with('error', 'รูปแบบการบันทึกไม่ถูกต้อง');
         }
         $status = ($action === 'draft') ? 'draft' : 'pending_saraban';
+
+        // เส้นทางเกษียน: ผู้จัดทำไม่จำเป็นต้องเลือก เจ้าหน้าที่สารบรรณจะเป็นผู้กำหนด/ปรับเส้นทางในขั้นตอนตรวจรับ
         $submittedRouteUsers = $this->request->getPost('route_users');
         $submittedRouteUsers = is_array($submittedRouteUsers) ? array_values(array_filter(array_map('trim', $submittedRouteUsers), static fn($value) => $value !== '')) : [];
-        if ($action === 'route' && empty($submittedRouteUsers)) {
-            return redirect()->back()->withInput()->with('error', 'กรุณากำหนดผู้รับเรื่องอย่างน้อย 1 ลำดับก่อนส่งเสนอ');
-        }
-        if (count($submittedRouteUsers) !== count(array_unique($submittedRouteUsers))) {
-            return redirect()->back()->withInput()->with('error', 'ไม่สามารถกำหนดผู้รับเรื่องคนเดิมซ้ำหลายลำดับได้');
-        }
-        $personnelIds = array_column($this->userModel->getPersonnelForSelection(), 'pers_id');
-        foreach ($submittedRouteUsers as $personnelId) {
-            if (!in_array($personnelId, $personnelIds, true)) {
-                return redirect()->back()->withInput()->with('error', 'พบข้อมูลบุคลากรที่เลือกไม่ถูกต้อง กรุณาเลือกผู้รับเรื่องใหม่');
+        if (!empty($submittedRouteUsers)) {
+            if (count($submittedRouteUsers) !== count(array_unique($submittedRouteUsers))) {
+                return redirect()->back()->withInput()->with('error', 'ไม่สามารถกำหนดผู้รับเรื่องคนเดิมซ้ำหลายลำดับได้');
+            }
+            $personnelIds = array_column($this->userModel->getPersonnelForSelection(), 'pers_id');
+            foreach ($submittedRouteUsers as $personnelId) {
+                if (!in_array($personnelId, $personnelIds, true)) {
+                    return redirect()->back()->withInput()->with('error', 'พบข้อมูลบุคลากรที่เลือกไม่ถูกต้อง กรุณาเลือกผู้รับเรื่องใหม่');
+                }
             }
         }
 
@@ -573,6 +751,22 @@ class InternalMemoController extends BaseController
             }
         }
 
+        // หากยังไม่มีเส้นทางเกษียน ให้กำหนดผู้อำนวยการโรงเรียน (ผอ.) เป็นผู้ลงนามเริ่มต้นเสมอ
+        $hasRoute = $this->routeModel->where('document_id', $docId)->countAllResults();
+        if ($hasRoute === 0) {
+            $defaultDirector = $this->userModel->getDefaultDirector();
+            $directorUser = $this->userModel->where('pers_id', $defaultDirector['pers_id'])->first();
+            $this->routeModel->insert([
+                'document_id'        => (int)$docId,
+                'step_order'         => 1,
+                'user_id'            => $directorUser['id'] ?? null,
+                'pers_id'            => $defaultDirector['pers_id'],
+                'approver_name'      => $defaultDirector['full_name'],
+                'personnel_position' => $defaultDirector['position_name'],
+                'status'             => 'pending',
+            ]);
+        }
+
         // Audit Trail Log
         $this->logModel->log($docId, $userId, 'CREATE', 'เขียนบันทึกข้อความภายในโรงเรียนและส่งเสนอขออนุมัติ');
 
@@ -614,10 +808,22 @@ class InternalMemoController extends BaseController
         // ตรวจสอบว่าผู้ใช้งานปัจจุบันคือผู้ที่ต้องลงนามในขั้นตอนนี้หรือไม่
         $canSign = false;
         $currentRoute = null;
+        $persId = (string)(session()->get('pers_id') ?? '');
+        $role   = (string)(session()->get('role') ?? '');
+        $isExecutiveOrAdmin = in_array($role, ['executive', 'super_admin'], true);
 
         foreach ($routes as $route) {
+            $isMatch = ($route['user_id'] == $userId)
+                || (!empty($persId) && (string)($route['pers_id'] ?? '') === $persId)
+                || ($isExecutiveOrAdmin && (
+                    ($route['pers_id'] ?? '') === 'pers_060'
+                    || str_contains($route['personnel_position'] ?? '', 'ผู้อำนวยการ')
+                    || str_contains($route['position_name'] ?? '', 'ผู้อำนวยการ')
+                    || empty($route['user_id'])
+                ));
+
             if ($route['step_order'] == $document['current_step'] 
-                && $route['user_id'] == $userId 
+                && $isMatch
                 && $route['status'] === 'pending' 
                 && $document['status'] === 'routing') {
                 $canSign = true;
@@ -634,14 +840,35 @@ class InternalMemoController extends BaseController
             $linkedTravel = (new DocumentLinkModel())->getTravelForMemo($id);
         }
 
+        // ข้อมูลผู้ใช้งานปัจจุบันและผู้รับหนังสือ
+        $currentUser = $userId ? $this->userModel->getUserWithDetails($userId) : null;
+        $receiverUser = !empty($document['received_by']) ? $this->userModel->getUserWithDetails($document['received_by']) : null;
+
+        // คำนวณเลขที่และเลขทะเบียนรับที่ระบบแนะนำ
+        $year = (int)($document['year'] ?? ((int)date('Y') + 543));
+        $issuedCount = $this->documentModel
+            ->where('doc_type', 'internal')
+            ->where('year', $year)
+            ->where('doc_no IS NOT NULL', null, false)
+            ->where('doc_no !=', '')
+            ->countAllResults();
+
+        $runningNo = str_pad($issuedCount + 1, 4, '0', STR_PAD_LEFT);
+        $suggestedDocNo = 'นว 51008.2/' . $runningNo;
+        $suggestedRegNo = $runningNo . '/' . $year;
+
         return view('memos/view', [
-            'document'     => $document,
-            'creator'      => $creator,
-            'routes'       => $routes,
-            'logs'         => $logs,
-            'canSign'      => $canSign,
-            'currentRoute' => $currentRoute,
-            'linkedTravel'  => $linkedTravel,
+            'document'       => $document,
+            'creator'        => $creator,
+            'routes'         => $routes,
+            'logs'           => $logs,
+            'canSign'        => $canSign,
+            'currentRoute'   => $currentRoute,
+            'linkedTravel'   => $linkedTravel,
+            'currentUser'    => $currentUser,
+            'receiverUser'   => $receiverUser,
+            'suggestedDocNo' => $suggestedDocNo,
+            'suggestedRegNo' => $suggestedRegNo,
         ]);
     }
 
@@ -658,11 +885,13 @@ class InternalMemoController extends BaseController
 
         $routes  = $this->routeModel->getRoutesForDocument($id);
         $creator = $this->userModel->getUserWithDetails($document['created_by']);
+        $receiverUser = !empty($document['received_by']) ? $this->userModel->getUserWithDetails($document['received_by']) : null;
 
         return view('memos/print', [
-            'document' => $document,
-            'creator'  => $creator,
-            'routes'   => $routes,
+            'document'     => $document,
+            'creator'      => $creator,
+            'routes'       => $routes,
+            'receiverUser' => $receiverUser,
         ]);
     }
 
@@ -678,13 +907,17 @@ class InternalMemoController extends BaseController
             return redirect()->to('/admin/memos')->with('error', 'ไม่พบบันทึกข้อความ');
         }
 
-        // อนุญาตให้แก้ไขได้เฉพาะเจ้าของเรื่อง (หรือผู้ดูแลระบบ) และเฉพาะฉบับร่าง/ถูกส่งคืน
-        $isPrivileged = in_array((string) session()->get('role'), ['super_admin', 'admin'], true);
+        // อนุญาตให้แก้ไขได้เฉพาะเจ้าของเรื่อง (หรือผู้ดูแลระบบ) และเฉพาะฉบับร่าง/ถูกส่งคืน/รอสารบรรณตรวจสอบออกเลข
+        $isPrivileged = in_array((string) session()->get('role'), ['super_admin', 'admin', 'saraban'], true);
         if ((int)$document['created_by'] !== (int)$userId && !$isPrivileged) {
             return redirect()->to('/admin/memos')->with('error', 'คุณไม่มีสิทธิ์แก้ไขบันทึกข้อความนี้');
         }
-        if (!in_array($document['status'], ['draft', 'returned'], true)) {
-            return redirect()->to('/admin/memos/' . $id)->with('error', 'แก้ไขได้เฉพาะบันทึกข้อความฉบับร่างหรือรายการที่ถูกส่งคืนเท่านั้น');
+        if (!in_array($document['status'], ['draft', 'returned', 'pending_saraban'], true)) {
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'เอกสารที่ออกเลขหนังสือและส่งเข้าสู่การเกษียนแล้ว ไม่สามารถแก้ไขได้');
+        }
+        $hasSigned = $this->routeModel->where('document_id', $id)->where('status', 'signed')->countAllResults() > 0;
+        if ($document['status'] === 'completed' || $hasSigned) {
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'เอกสารมีผู้บริหารลงนามแล้ว ไม่สามารถแก้ไขได้');
         }
 
         $user        = $this->userModel->getUserWithDetails($userId);
@@ -714,24 +947,29 @@ class InternalMemoController extends BaseController
         }
 
         // Enforce permissions on the POST endpoint too; hiding the edit link is not authorization.
-        $isPrivileged = in_array((string) session()->get('role'), ['super_admin', 'admin'], true);
+        $isPrivileged = in_array((string) session()->get('role'), ['super_admin', 'admin', 'saraban'], true);
         if ((int)$document['created_by'] !== (int)$userId && !$isPrivileged) {
             return redirect()->to('/admin/memos')->with('error', 'คุณไม่มีสิทธิ์แก้ไขบันทึกข้อความนี้');
         }
-        if (!in_array($document['status'], ['draft', 'returned'], true)) {
-            return redirect()->to('/admin/memos/' . $id)->with('error', 'เอกสารที่ส่งเสนอหรือเสร็จสิ้นแล้วไม่สามารถแก้ไขโดยตรงได้');
+        if (!in_array($document['status'], ['draft', 'returned', 'pending_saraban'], true)) {
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'เอกสารที่ออกเลขหนังสือและส่งเข้าสู่การเกษียนแล้ว ไม่สามารถแก้ไขได้');
+        }
+        $hasSigned = $this->routeModel->where('document_id', $id)->where('status', 'signed')->countAllResults() > 0;
+        if ($document['status'] === 'completed' || $hasSigned) {
+            return redirect()->to('/admin/memos/' . $id)->with('error', 'เอกสารมีผู้บริหารลงนามแล้ว ไม่สามารถแก้ไขได้');
         }
 
         $rules = [
             'title'    => 'required|min_length[3]|max_length[255]',
-            'doc_no'   => 'required|max_length[100]',
+            'doc_no'   => 'permit_empty|max_length[100]',
             'from_org' => 'required|max_length[200]',
             'to_org'   => 'required|max_length[200]',
             'doc_date' => 'required',
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('error', 'กรุณากรอกข้อมูลให้ครบถ้วน');
+            $errors = implode(', ', $this->validator->getErrors());
+            return redirect()->back()->withInput()->with('error', 'กรุณากรอกข้อมูลให้ครบถ้วน: ' . $errors);
         }
 
         $docDate = $this->request->getPost('doc_date') ?: date('Y-m-d');
@@ -740,7 +978,12 @@ class InternalMemoController extends BaseController
         }
 
         $action = $this->request->getPost('submit_action') ?: 'route';
-        $newStatus = ($action === 'draft') ? 'draft' : 'routing';
+        // ถ้าเป็น pending_saraban และกดบันทึกส่งใหม่ ให้คงเป็น pending_saraban รอสารบรรณออกเลข
+        if ($action === 'draft') {
+            $newStatus = 'draft';
+        } else {
+            $newStatus = ($document['status'] === 'returned') ? 'routing' : 'pending_saraban';
+        }
 
         $db = \Config\Database::connect();
         $db->transStart();
@@ -814,11 +1057,27 @@ class InternalMemoController extends BaseController
             return redirect()->to('/admin/memos')->with('error', 'ไม่พบบันทึกข้อความ');
         }
 
-        $route = $this->routeModel->where('document_id', $id)
-                                  ->where('step_order', $document['current_step'])
-                                  ->where('user_id', $userId)
-                                  ->where('status', 'pending')
-                                  ->first();
+        $persId = (string)(session()->get('pers_id') ?? '');
+        $role   = (string)(session()->get('role') ?? '');
+        $isExecutiveOrAdmin = in_array($role, ['executive', 'super_admin'], true);
+
+        $routeBuilder = $this->routeModel->where('document_id', $id)
+                                         ->where('step_order', $document['current_step'])
+                                         ->where('status', 'pending');
+
+        $routeBuilder->groupStart()
+                     ->where('user_id', $userId);
+        if (!empty($persId)) {
+            $routeBuilder->orWhere('pers_id', $persId);
+        }
+        if ($isExecutiveOrAdmin) {
+            $routeBuilder->orWhere('pers_id', 'pers_060')
+                         ->orLike('personnel_position', 'ผู้อำนวยการ')
+                         ->orWhere('user_id IS NULL', null, false);
+        }
+        $routeBuilder->groupEnd();
+
+        $route = $routeBuilder->first();
 
         if (!$route) {
             return redirect()->back()->with('error', 'คุณไม่มีสิทธิ์ลงนามในขั้นตอนนี้');
@@ -874,6 +1133,7 @@ class InternalMemoController extends BaseController
         $verifyHash   = hash('sha256', $verifyString);
 
         $this->routeModel->update($route['id'], [
+            'user_id'        => $userId,
             'status'         => 'signed',
             'comment_preset' => $commentPreset,
             'comment_text'   => $commentText,

@@ -23,31 +23,49 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/saraban-memo.css?v=' . (file_exists(FCPATH . 'assets/css/saraban-memo.css') ? filemtime(FCPATH . 'assets/css/saraban-memo.css') : time())) ?>">
 
     <style>
-        /* สไตล์สำหรับส่วนการเกษียน/คำสั่งการเพิ่มเติม */
-        .endorse-section {
-            margin-top: 30px;
-            border-top: 1px dashed #94a3b8;
-            padding-top: 16px;
-            page-break-inside: avoid;
-        }
-
-        .endorse-card {
-            border: 1px solid #cbd5e1;
-            padding: 10px 14px;
-            margin-bottom: 12px;
-            font-size: var(--font-normal);
-            line-height: 1.25;
-            background-color: #fafafa;
-            border-radius: 4px;
+        .page {
+            background-color: white;
+            width: 21cm;
+            height: 29.7cm;
+            min-height: 29.7cm;
+            max-height: 29.7cm;
+            padding: 1.5cm 2cm 2cm 3cm;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            position: relative;
+            box-sizing: border-box;
+            overflow: hidden;
+            margin: 0 auto;
         }
 
         @media print {
-            .endorse-section {
-                border-top: 1px dashed #000;
+            @page {
+                size: A4 portrait;
+                margin: 0;
             }
-            .endorse-card {
-                border: 1px solid #333;
-                background-color: transparent !important;
+            body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .page-container {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 21cm !important;
+                height: 29.7cm !important;
+            }
+            .page {
+                box-shadow: none !important;
+                border: none !important;
+                width: 21cm !important;
+                height: 29.7cm !important;
+                min-height: 29.7cm !important;
+                max-height: 29.7cm !important;
+                padding: 1.5cm 2cm 2cm 3cm !important;
+                overflow: hidden !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
         }
     </style>
@@ -84,7 +102,32 @@
 
     <!-- ส่วนเนื้อหากระดาษ A4 -->
     <div class="page-container">
-        <div class="page" id="printableMemoPaper">
+        <div class="page" id="printableMemoPaper" style="position: relative;">
+            <?php
+            $showStamp = isset($document['has_receive_stamp']) ? ((int)$document['has_receive_stamp'] === 1) : true;
+            $hasReceiveStamp = $showStamp && (!empty($document['internal_reg_no']) || !empty($document['received_at']) || (!empty($document['doc_no']) && ($document['status'] ?? '') !== 'pending_saraban'));
+            ?>
+            <?php if ($hasReceiveStamp): ?>
+                <?php
+                $rX = !empty($document['receive_stamp_x']) ? $document['receive_stamp_x'] : '72.2%';
+                $rY = !empty($document['receive_stamp_y']) ? $document['receive_stamp_y'] : '3.5%';
+                $rScale = !empty($document['receive_stamp_scale']) ? (float)$document['receive_stamp_scale'] : 1.0;
+                $rReg = !empty($document['internal_reg_no']) ? $document['internal_reg_no'] : (!empty($document['doc_no']) ? $document['doc_no'] : '-');
+                $rDate = !empty($document['receive_date']) ? $document['receive_date'] : ($document['doc_date'] ?? date('Y-m-d'));
+                $rTime = !empty($document['receive_stamp_time']) ? $document['receive_stamp_time'] : (!empty($document['received_at']) ? date('H:i น.', strtotime($document['received_at'])) : date('H:i น.'));
+                ?>
+                <div id="issuedReceiveStamp" class="saraban-receive-stamp-img-wrap shadow-xs" style="position: absolute; left: <?= esc($rX) ?>; top: <?= esc($rY) ?>; width: 23.8%; aspect-ratio: 452 / 227; height: auto; transform: rotate(-1deg) scale(<?= $rScale ?>); transform-origin: top left; z-index: 50; display: block;">
+                    <div style="position: relative; width: 100%; height: 100%; background: #ffffff; border-radius: 1px; overflow: hidden; box-shadow: 0 4px 12px rgba(20,42,130,0.18);">
+                        <img src="<?= base_url('assets/img/stamp_template_skj.png') ?>" alt="ตรายาง รร.ส.ก.จ." style="width: 100%; height: 100%; display: block; object-fit: fill; pointer-events: none;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; font-family: 'TH SarabunIT๙', 'TH Sarabun New', 'Sarabun', sans-serif; font-weight: bold; color: #142a82; line-height: 1;">
+                            <span style="position: absolute; left: 27%; top: 43%; transform: translateY(-82%); font-size: 1.3vw; min-font-size: 13pt; max-font-size: 17pt; white-space: nowrap;"><?= esc(to_thai_number($rReg)) ?></span>
+                            <span style="position: absolute; left: 25.2%; top: 66.3%; transform: translateY(-82%); font-size: 1.3vw; min-font-size: 13pt; max-font-size: 17pt; white-space: nowrap;"><?= esc(to_thai_number(thai_date($rDate, 'medium'))) ?></span>
+                            <span style="position: absolute; left: 24%; top: 89.6%; transform: translateY(-82%); font-size: 1.3vw; min-font-size: 13pt; max-font-size: 17pt; white-space: nowrap;"><?= esc(to_thai_number($rTime)) ?></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <div class="header">
                 <img src="<?= base_url('assets/img/krut_thai.png') ?>" alt="ตราครุฑ" class="garuda">
                 <div class="document-title">บันทึกข้อความ</div>
@@ -134,39 +177,51 @@
                 </div>
             </div>
 
-            <!-- คำสั่งการ / การเกษียนลงนามตามลำดับขั้น (Digital Endorsements) -->
+            <!-- การเกษียนลงนามตามลำดับขั้น: ตราปั๊มหมึกน้ำเงินเสมือนจริง (Realistic Blue Rubber Stamps) -->
             <?php 
             $signedRoutes = array_filter($routes ?? [], function($r) {
                 return $r['status'] === 'signed';
             });
+            $defaultPositions = [
+                1 => ['x' => '8%',  'y' => '68%', 'rot' => '-1.5deg'],
+                2 => ['x' => '52%', 'y' => '68%', 'rot' => '1.2deg'],
+                3 => ['x' => '8%',  'y' => '82%', 'rot' => '-2.0deg'],
+                4 => ['x' => '52%', 'y' => '82%', 'rot' => '1.5deg'],
+            ];
             ?>
             <?php if (!empty($signedRoutes)): ?>
-                <div class="endorse-section">
-                    <div style="font-weight: 700; font-size: var(--font-normal); margin-bottom: 10px;">
-                        คำสั่งการ / การเกษียนลงนามตามลำดับขั้น (Digital Endorsements)
+                <?php foreach ($signedRoutes as $sr): ?>
+                    <?php
+                    $stepIdx = (int)($sr['step_order'] ?? 1);
+                    $posX = !empty($sr['stamp_x']) ? $sr['stamp_x'] : ($defaultPositions[$stepIdx]['x'] ?? '8%');
+                    $posY = !empty($sr['stamp_y']) ? $sr['stamp_y'] : ($defaultPositions[$stepIdx]['y'] ?? '70%');
+                    $scale = !empty($sr['stamp_scale']) ? (float)$sr['stamp_scale'] : 1.0;
+                    $widthStyle = !empty($sr['stamp_width']) ? 'width: ' . esc($sr['stamp_width']) . ';' : '';
+                    $rot  = $defaultPositions[$stepIdx]['rot'] ?? '-1.5deg';
+                    $transformStyle = "transform: rotate({$rot}) scale({$scale}); transform-origin: top left;";
+                    ?>
+                    <div class="saraban-blue-stamp shadow-sm" style="left: <?= esc($posX) ?>; top: <?= esc($posY) ?>; <?= $transformStyle ?> <?= $widthStyle ?>">
+                        <div class="stamp-preset"><?= esc($sr['comment_preset']) ?></div>
+                        <?php if (!empty($sr['comment_text'])): ?>
+                            <div class="stamp-comment">"<?= esc($sr['comment_text']) ?>"</div>
+                        <?php endif; ?>
+                        <div class="stamp-sig-wrap">
+                            <?php if (!empty($sr['signature_img'])): ?>
+                                <img src="<?= base_url($sr['signature_img']) ?>" alt="ลายเซ็น" class="stamp-sig-img">
+                            <?php endif; ?>
+                        </div>
+                        <div class="stamp-signer-name">( <?= esc(($sr['prefix'] ?? '') . ($sr['first_name'] ?? '') . ' ' . ($sr['last_name'] ?? '')) ?> )</div>
+                        <div class="stamp-signer-pos"><?= esc($sr['position_name'] ?? '') ?></div>
+                        <div class="stamp-footer">
+                            <span>วันที่ <?= thai_date($sr['signed_at'], 'short') ?></span>
+                            <?php if (!empty($sr['verify_hash'])): ?>
+                                <a href="<?= base_url('verify/' . $sr['verify_hash']) ?>" target="_blank" class="stamp-verify-badge text-decoration-none">
+                                    ✓ ตรวจสอบ
+                                </a>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                        <?php foreach ($signedRoutes as $sr): ?>
-                            <div style="flex: 1 1 calc(50% - 12px); box-sizing: border-box;">
-                                <div class="endorse-card">
-                                    <div style="font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">
-                                        <?= esc($sr['comment_preset']) ?>
-                                    </div>
-                                    <?php if (!empty($sr['comment_text'])): ?>
-                                        <div style="margin-bottom: 6px;"><?= nl2br(esc($sr['comment_text'])) ?></div>
-                                    <?php endif; ?>
-                                    <div style="text-align: center; padding-top: 6px; border-top: 1px dotted #cbd5e1;">
-                                        <?php if (!empty($sr['signature_img'])): ?>
-                                            <img src="<?= base_url($sr['signature_img']) ?>" alt="ลายเซ็น" style="max-height: 40px; max-width: 130px; display: block; margin: 0 auto 4px auto;">
-                                        <?php endif; ?>
-                                        <div style="font-weight: 600;"><?= esc(($sr['prefix'] ?? '') . ($sr['first_name'] ?? '') . ' ' . ($sr['last_name'] ?? '')) ?></div>
-                                        <div style="font-size: 13px; color: #475569;"><?= esc($sr['position_name'] ?? '') ?> (<?= thai_date($sr['signed_at'], 'short') ?>)</div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
+                <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>

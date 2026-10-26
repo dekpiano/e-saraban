@@ -35,6 +35,20 @@ if (!function_exists('thai_date')) {
     }
 }
 
+if (!function_exists('thai_date_full')) {
+    function thai_date_full($date, $showTime = false)
+    {
+        return thai_date($date, 'full', $showTime);
+    }
+}
+
+if (!function_exists('thai_date_short')) {
+    function thai_date_short($date, $showTime = false)
+    {
+        return thai_date($date, 'short', $showTime);
+    }
+}
+
 if (!function_exists('urgency_badge')) {
     function urgency_badge($urgency)
     {
@@ -221,6 +235,15 @@ if (!function_exists('document_url')) {
             return rtrim($baseUrl, '/') . '/' . ltrim($filePath, '/');
         }
         return base_url($filePath);
+    }
+}
+
+if (!function_exists('to_thai_number')) {
+    function to_thai_number($number)
+    {
+        $arabic = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        $thai   = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
+        return str_replace($arabic, $thai, (string)$number);
     }
 }
 

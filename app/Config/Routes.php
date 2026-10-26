@@ -51,12 +51,24 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
     $routes->post('documents/(:num)/sign', 'DocumentController::sign/$1');
     $routes->post('documents/(:num)/upload', 'DocumentController::uploadFile/$1');
 
+    // ทะเบียนหนังสือรับ (ภายนอก)
+    $routes->get('inbound', 'InboundDocumentController::index');
+    $routes->get('inbound/create', 'InboundDocumentController::create');
+    $routes->post('inbound/store', 'InboundDocumentController::store');
+    $routes->get('inbound/(:num)', 'InboundDocumentController::view/$1');
+    $routes->post('inbound/(:num)/endorse', 'InboundDocumentController::endorse/$1');
+    $routes->post('inbound/(:num)/update-stamp', 'InboundDocumentController::updateStamp/$1');
+    $routes->get('inbound/(:num)/delete', 'InboundDocumentController::delete/$1');
+    $routes->get('inbound/(:num)/print', 'InboundDocumentController::printSlip/$1');
+
     // บันทึกข้อความ (ภายในโรงเรียน)
     $routes->get('memos', 'InternalMemoController::index');
     $routes->get('memos/create', 'InternalMemoController::create');
     $routes->get('memos/saraban-inbox', 'InternalMemoController::sarabanInbox');
     $routes->post('memos/(:num)/update-route', 'InternalMemoController::updateRoute/$1');
     $routes->post('memos/(:num)/issue-number', 'InternalMemoController::issueNumber/$1');
+    $routes->post('memos/(:num)/update-issue', 'InternalMemoController::updateIssue/$1');
+    $routes->post('memos/(:num)/cancel-issue', 'InternalMemoController::cancelIssue/$1');
     $routes->post('memos/store', 'InternalMemoController::store');
     $routes->get('memos/(:num)', 'InternalMemoController::view/$1');
     $routes->get('memos/(:num)/print', 'InternalMemoController::printView/$1');
@@ -64,6 +76,18 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
     $routes->post('memos/(:num)/update', 'InternalMemoController::update/$1');
     $routes->post('memos/(:num)/delete', 'InternalMemoController::delete/$1');
     $routes->post('memos/(:num)/sign', 'InternalMemoController::sign/$1');
+
+    // คำสั่งโรงเรียน (School Orders)
+    $routes->get('orders', 'OrderController::index');
+    $routes->get('orders/create', 'OrderController::create');
+    $routes->post('orders/store', 'OrderController::store');
+    $routes->get('orders/(:num)', 'OrderController::view/$1');
+    $routes->get('orders/(:num)/print', 'OrderController::printDoc/$1');
+    $routes->get('orders/(:num)/edit', 'OrderController::edit/$1');
+    $routes->post('orders/(:num)/update', 'OrderController::update/$1');
+    $routes->post('orders/(:num)/delete', 'OrderController::delete/$1');
+    $routes->post('orders/(:num)/upload', 'OrderController::uploadFile/$1');
+    $routes->post('orders/(:num)/sign', 'OrderController::sign/$1');
 
     // Approval / Permission requests must reference an existing internal memo first
     $routes->get('approvals', 'ApprovalController::index');

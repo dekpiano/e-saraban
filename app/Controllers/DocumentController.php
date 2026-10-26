@@ -30,6 +30,7 @@ class DocumentController extends BaseController
     public function index()
     {
         $type = $this->request->getGet('type');
+        $search = trim((string)$this->request->getGet('search'));
         $query = $this->documentModel->select('documents.*, users.first_name, users.last_name, users.prefix')
                                      ->join('users', 'users.id = documents.created_by', 'left');
 
@@ -37,11 +38,22 @@ class DocumentController extends BaseController
             $query->where('documents.doc_type', $type);
         }
 
+        if (!empty($search)) {
+            $query->groupStart()
+                  ->like('documents.doc_no', $search)
+                  ->orLike('documents.internal_reg_no', $search)
+                  ->orLike('documents.title', $search)
+                  ->orLike('documents.from_org', $search)
+                  ->orLike('documents.to_org', $search)
+                  ->groupEnd();
+        }
+
         $documents = $query->orderBy('documents.created_at', 'DESC')->findAll();
 
-        return view('documents/index', [
-            'documents' => $documents,
-            'currentType' => $type
+        return view('documents/documents_index', [
+            'documents'   => $documents,
+            'currentType' => $type,
+            'search'      => $search
         ]);
     }
 
@@ -81,6 +93,11 @@ class DocumentController extends BaseController
     // ฟอร์มลงทะเบียนหนังสือใหม่
     public function create()
     {
+        $userRole = (string)(session()->get('role') ?? 'teacher');
+        if (!in_array($userRole, ['super_admin', 'admin', 'saraban'], true)) {
+            return redirect()->to(base_url('admin/documents'))->with('error', 'เฉพาะเจ้าหน้าที่สารบรรณหรือผู้ดูแลระบบเท่านั้นที่มีสิทธิ์ลงทะเบียนรับ-ส่งหนังสือ');
+        }
+
         $defaultType = $this->request->getGet('type') ?? 'in';
         $nextRegNo   = $this->documentModel->getNextInternalNumber($defaultType);
         $users       = $this->userModel->getAllActiveUsers();
@@ -192,17 +209,34 @@ class DocumentController extends BaseController
         // Check if current user is the one assigned to current_step
         $canSign = false;
         $currentRoute = null;
+        $persId = (string)(session()->get('pers_id') ?? '');
+        $role   = (string)(session()->get('role') ?? '');
+        $isExecutiveOrAdmin = in_array($role, ['executive', 'super_admin'], true);
 
         foreach ($routes as $route) {
-            if ($route['step_order'] == $document['current_step'] && $route['user_id'] == $userId && $route['status'] === 'pending' && $document['status'] === 'routing') {
+            $isMatch = ($route['user_id'] == $userId)
+                || (!empty($persId) && (string)($route['pers_id'] ?? '') === $persId)
+                || ($isExecutiveOrAdmin && (
+                    ($route['pers_id'] ?? '') === 'pers_060'
+                    || str_contains($route['personnel_position'] ?? '', 'ผู้อำนวยการ')
+                    || str_contains($route['position_name'] ?? '', 'ผู้อำนวยการ')
+                    || empty($route['user_id'])
+                ));
+
+            if ($route['step_order'] == $document['current_step'] && $isMatch && $route['status'] === 'pending' && $document['status'] === 'routing') {
                 $canSign = true;
                 $currentRoute = $route;
                 break;
             }
         }
 
+        $creator     = !empty($document['created_by']) ? $this->userModel->getUserWithDetails($document['created_by']) : null;
+        $currentUser = !empty($userId) ? $this->userModel->getUserWithDetails($userId) : null;
+
         return view('documents/view', [
             'document'     => $document,
+            'creator'      => $creator,
+            'currentUser'  => $currentUser,
             'routes'       => $routes,
             'logs'         => $logs,
             'canSign'      => $canSign,
@@ -220,12 +254,28 @@ class DocumentController extends BaseController
             return redirect()->to('/admin/documents')->with('error', 'ไม่พบเอกสาร');
         }
 
+        $persId = (string)(session()->get('pers_id') ?? '');
+        $role   = (string)(session()->get('role') ?? '');
+        $isExecutiveOrAdmin = in_array($role, ['executive', 'super_admin'], true);
+
         // Find route for this user at this step
-        $route = $this->routeModel->where('document_id', $id)
-                                  ->where('step_order', $document['current_step'])
-                                  ->where('user_id', $userId)
-                                  ->where('status', 'pending')
-                                  ->first();
+        $routeBuilder = $this->routeModel->where('document_id', $id)
+                                         ->where('step_order', $document['current_step'])
+                                         ->where('status', 'pending');
+
+        $routeBuilder->groupStart()
+                     ->where('user_id', $userId);
+        if (!empty($persId)) {
+            $routeBuilder->orWhere('pers_id', $persId);
+        }
+        if ($isExecutiveOrAdmin) {
+            $routeBuilder->orWhere('pers_id', 'pers_060')
+                         ->orLike('personnel_position', 'ผู้อำนวยการ')
+                         ->orWhere('user_id IS NULL', null, false);
+        }
+        $routeBuilder->groupEnd();
+
+        $route = $routeBuilder->first();
 
         if (!$route) {
             return redirect()->back()->with('error', 'คุณไม่มีสิทธิ์ลงนามในเอกสารขั้นตอนนี้');
@@ -261,22 +311,53 @@ class DocumentController extends BaseController
         if ($signatureType === 'draw' && !empty($signatureData)) {
             $data = explode(',', $signatureData);
             $img = base64_decode(end($data));
+            $dir = FCPATH . 'uploads/signatures/';
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0777, true);
+            }
             $filename = 'sign_' . $id . '_step_' . $route['step_order'] . '_' . time() . '.png';
-            $path = FCPATH . 'uploads/signatures/' . $filename;
+            $path = $dir . $filename;
             file_put_contents($path, $img);
             $signaturePath = 'uploads/signatures/' . $filename;
         } else {
-            // Preset profile signature
-            $user = $this->userModel->find($userId);
-            $signaturePath = $user['signature_img'] ?? '';
+            // Preset profile signature (support both users and tb_personnel)
+            $user = $this->userModel->getUserWithDetails($userId);
+            $signaturePath = $user['signature_img'] ?? session()->get('signature_img') ?? '';
         }
 
         // Create verification hash
         $verifyString = $id . '|' . $userId . '|' . date('Y-m-d H:i:s') . '|' . $this->request->getIPAddress();
         $verifyHash   = hash('sha256', $verifyString);
 
+        // Capture stamp coordinates, scale and dimensions
+        $stampX     = trim((string)$this->request->getPost('stamp_x'));
+        $stampY     = trim((string)$this->request->getPost('stamp_y'));
+        $stampScale = trim((string)$this->request->getPost('stamp_scale'));
+        $stampWidth = trim((string)$this->request->getPost('stamp_width'));
+        $stampPage  = (int)($this->request->getPost('stamp_page') ?? 1);
+
+        if (empty($stampX)) {
+            $stampX = '8%';
+        }
+        if (empty($stampY)) {
+            $stampY = '70%';
+        }
+        if (empty($stampScale)) {
+            $stampScale = '1.0';
+        }
+
+        // Auto-check table columns
+        $db = \Config\Database::connect();
+        if (!$db->fieldExists('stamp_scale', 'document_routes')) {
+            $db->query("ALTER TABLE document_routes ADD COLUMN stamp_scale VARCHAR(20) DEFAULT '1.0' AFTER stamp_y");
+        }
+        if (!$db->fieldExists('stamp_width', 'document_routes')) {
+            $db->query("ALTER TABLE document_routes ADD COLUMN stamp_width VARCHAR(20) DEFAULT NULL AFTER stamp_scale");
+        }
+
         // Update current route step
         $this->routeModel->update($route['id'], [
+            'user_id'        => $userId,
             'status'         => 'signed',
             'comment_preset' => $commentPreset,
             'comment_text'   => $commentText,
@@ -285,6 +366,11 @@ class DocumentController extends BaseController
             'signed_at'      => date('Y-m-d H:i:s'),
             'ip_address'     => $this->request->getIPAddress(),
             'verify_hash'    => $verifyHash,
+            'stamp_x'        => $stampX,
+            'stamp_y'        => $stampY,
+            'stamp_scale'    => $stampScale,
+            'stamp_width'    => !empty($stampWidth) ? $stampWidth : null,
+            'stamp_page'     => $stampPage,
         ]);
 
         // Check if there is a next step

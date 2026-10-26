@@ -26,6 +26,11 @@ class DocumentRouteModel extends Model
         'signed_at',
         'ip_address',
         'verify_hash',
+        'stamp_x',
+        'stamp_y',
+        'stamp_scale',
+        'stamp_width',
+        'stamp_page',
     ];
 
     protected $useTimestamps = true;

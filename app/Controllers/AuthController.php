@@ -256,41 +256,13 @@ class AuthController extends BaseController
         // ดึงข้อมูลบุคลากรแบบเรียลไทม์จาก tb_personnel
         $userWithDetails = $this->userModel->getUserWithDetails($userId);
 
-        // ตรวจสอบเงื่อนไขในฐานข้อมูลว่ามีมากกว่า 1 สิทธิ์หรือไม่ (เช่น เป็นทั้ง Admin/Supper Admin และ ครู ในคราวเดียวกัน)
-        $hasDualRoles = false;
-        $availableRoles = [];
-        $adminRole = null;
-        $staffRole = 'teacher';
+        // คำนวณสิทธิ์และบทบาทที่สามารถเข้าถึงได้ตามระดับบัญชีผู้ใช้งาน
+        $masterRole = $user['role'] ?? 'teacher';
+        $availableRoles = $this->buildAvailableRoles($masterRole, $userWithDetails, $person);
+        $hasDualRoles = (count($availableRoles) > 1);
 
-        if ($user && in_array($user['role'], ['super_admin', 'admin'], true)) {
-            $hasDualRoles = true;
-            $adminRole = $user['role'];
-            $staffRole = ($person && in_array($person['pers_position'], ['posi_001', 'posi_002'], true)) ? 'executive' : 'teacher';
-
-            $availableRoles[$adminRole] = [
-                'key'         => $adminRole,
-                'title'       => ($adminRole === 'super_admin') ? 'Supper Admin' : 'Admin',
-                'subtitle'    => ($adminRole === 'super_admin') ? 'ผู้ดูแลระบบสูงสุด' : 'เจ้าหน้าที่งานสารบรรณ',
-                'description' => ($adminRole === 'super_admin')
-                    ? 'ควบคุมและบริหารระบบทั้งหมด จัดการแต่งตั้ง/แก้ไขสิทธิ์เจ้าหน้าที่ และตรวจสอบ Audit Log'
-                    : 'ลงรับ-ส่งหนังสือราชการ ออกเลขทะเบียน คุมเล่มทะเบียน และกำหนดเส้นทางเดินแฟ้ม',
-                'icon'        => ($adminRole === 'super_admin') ? 'bx-crown' : 'bx-folder-open',
-                'badge_class' => ($adminRole === 'super_admin') ? 'bg-primary' : 'bg-info',
-                'border_class'=> ($adminRole === 'super_admin') ? 'border-primary' : 'border-info',
-            ];
-
-            $availableRoles[$staffRole] = [
-                'key'         => $staffRole,
-                'title'       => 'ครู / ผู้ใช้งานทั่วไป',
-                'subtitle'    => !empty($userWithDetails['position_name']) ? $userWithDetails['position_name'] : 'บุคลากรโรงเรียน',
-                'description' => 'ยื่นขออนุมัติไปราชการ สร้างบันทึกข้อความภายใน เสนอคำสั่ง และลงนาม/เกษียนตามสายงาน',
-                'icon'        => 'bx-user-check',
-                'badge_class' => 'bg-secondary',
-                'border_class'=> 'border-secondary',
-            ];
-
-            $role = $adminRole; // ค่าเริ่มต้น
-        }
+        // กำหนดบทบาทเริ่มต้น
+        $role = $masterRole;
 
         $sessionData = [
             'user_id'            => $userWithDetails['id'],
@@ -300,11 +272,12 @@ class AuthController extends BaseController
             'first_name'         => $userWithDetails['first_name'] ?: 'ผู้ใช้งาน',
             'last_name'          => $userWithDetails['last_name'] ?: '',
             'email'              => $userWithDetails['email'],
+            'user_img'           => $userWithDetails['img'] ?? null,
             'role'               => $role,
+            'master_role'        => $masterRole,
+            'is_super_admin'     => ($masterRole === 'super_admin'),
             'has_dual_roles'     => $hasDualRoles,
             'available_roles'    => $availableRoles,
-            'primary_admin_role' => $adminRole,
-            'staff_role'         => $staffRole,
             'position_name'      => $userWithDetails['position_name'],
             'department_name'    => $userWithDetails['department_name'],
             'signature_img'      => $userWithDetails['signature_img'] ?? null,
@@ -314,12 +287,153 @@ class AuthController extends BaseController
 
         session()->set($sessionData);
 
-        // หากพบบัญชีมีหลายสิทธิ์ ให้แสดง Modal เลือกสิทธิ์ที่ต้องการเข้าใช้งาน
+        // หากพบบัญชีมีหลายสิทธิ์ (Super Admin / Admin) ให้แสดง Modal/หน้าเลือกสิทธิ์ที่ต้องการเข้าใช้งาน
         if ($hasDualRoles) {
             return redirect()->to('/select-role');
         }
 
         return redirect()->to('/admin/dashboard')->with('success', $successMessagePrefix . ' ยินดีต้อนรับ ' . $sessionData['full_name']);
+    }
+
+    /**
+     * สร้างรายการบทบาทที่สามารถเลือกหรือสลับใช้งานได้ตามสิทธิ์ของผู้ใช้
+     * - เฉพาะ Super Admin: สามารถเข้าสู่ "ทุกตำแหน่งและบทบาทในระบบ" (Super Admin, สารบรรณ, ฝ่ายบริหาร ผอ./รอง ผอ., ครูทั่วไป)
+     * - Admin ปกติ: สลับระหว่าง Admin สารบรรณ กับ บทบาทครู/ฝ่ายบริหารตามสายงาน
+     */
+    protected function buildAvailableRoles(string $masterRole, ?array $userWithDetails = null, ?array $person = null): array
+    {
+        // 1. เฉพาะ Super Admin: ได้รับสิทธิ์เข้าถึงทุกบทบาทและตำแหน่งในระบบครบ 100%
+        if ($masterRole === 'super_admin') {
+            return [
+                'super_admin' => [
+                    'key'           => 'super_admin',
+                    'title'         => 'Super Admin',
+                    'role_badge'    => 'ผู้ดูแลระบบสูงสุด',
+                    'subtitle'      => 'ผู้ดูแลและควบคุมระบบทั้งหมด',
+                    'description'   => 'ควบคุมและบริหารระบบทั้งหมด จัดการแต่งตั้ง/แก้ไขสิทธิ์เจ้าหน้าที่ และตรวจสอบ Audit Log ความปลอดภัย',
+                    'features'      => [
+                        'จัดการและกำหนดสิทธิ์ผู้ใช้งานทั้งหมดในโรงเรียน',
+                        'ตรวจสอบความถูกต้องและ Audit Log ของระบบ',
+                        'ควบคุมการตั้งค่าระบบงานสารบรรณทั้งหมด'
+                    ],
+                    'icon'          => 'bx-crown',
+                    'badge_class'   => 'bg-primary text-white',
+                    'border_class'  => 'border-primary',
+                    'theme'         => 'theme-super-admin',
+                    'position_name' => 'ผู้ดูแลระบบสูงสุด',
+                    'can_sign_final'=> true,
+                ],
+                'admin' => [
+                    'key'           => 'admin',
+                    'title'         => 'Admin งานสารบรรณ',
+                    'role_badge'    => 'เจ้าหน้าที่สารบรรณ',
+                    'subtitle'      => 'งานสารบรรณและทะเบียนหนังสือ',
+                    'description'   => 'ลงรับ-ส่งหนังสือราชการ ออกเลขทะเบียน คุมเล่มทะเบียน และกำหนดเส้นทางเดินแฟ้มเกษียนหนังสือ',
+                    'features'      => [
+                        'ลงรับและส่งหนังสือราชการภายนอก-ภายใน',
+                        'ออกเลขทะเบียนหนังสือและคุมเล่มทะเบียนระบบ',
+                        'กำหนดเส้นทางเดินเอกสารและแฟ้มเสนอเกษียน'
+                    ],
+                    'icon'          => 'bx-folder-open',
+                    'badge_class'   => 'bg-info text-white',
+                    'border_class'  => 'border-info',
+                    'theme'         => 'theme-admin',
+                    'position_name' => 'เจ้าหน้าที่งานสารบรรณ',
+                    'can_sign_final'=> false,
+                ],
+                'executive' => [
+                    'key'           => 'executive',
+                    'title'         => 'ฝ่ายบริหารสถานศึกษา',
+                    'role_badge'    => 'ฝ่ายบริหาร',
+                    'subtitle'      => 'ผู้อำนวยการโรงเรียน / รองผู้อำนวยการ',
+                    'description'   => 'พิจารณาสั่งการ อนุมัติหนังสือราชการ ขอไปราชการ และลงนามดิจิทัลขั้นสุดท้าย (1-Click Sign)',
+                    'features'      => [
+                        'พิจารณาสั่งการและอนุมัติหนังสือราชการ',
+                        'ลงนามดิจิทัลและเกษียนหนังสือขั้นสุดท้าย',
+                        'ตรวจติดตามสถานะงานและเอกสารสำคัญของโรงเรียน'
+                    ],
+                    'icon'          => 'bx-award',
+                    'badge_class'   => 'bg-warning text-dark',
+                    'border_class'  => 'border-warning',
+                    'theme'         => 'theme-executive',
+                    'position_name' => 'ผู้อำนวยการโรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์',
+                    'can_sign_final'=> true,
+                ],
+                'teacher' => [
+                    'key'           => 'teacher',
+                    'title'         => 'ครู / ผู้ใช้งานทั่วไป',
+                    'role_badge'    => 'บุคลากรโรงเรียน',
+                    'subtitle'      => (!empty($userWithDetails['position_name']) && !in_array($userWithDetails['position_name'], ['ผู้ดูแลระบบสูงสุด', 'เจ้าหน้าที่งานสารบรรณ'], true)) 
+                                        ? $userWithDetails['position_name'] : 'ครูผู้สอน',
+                    'description'   => 'ยื่นขออนุมัติไปราชการ สร้างบันทึกข้อความภายใน เสนอคำสั่ง และลงนาม/เกษียนตามสายงาน',
+                    'features'      => [
+                        'ยื่นขออนุมัติไปราชการและรายงานผลปฏิบัติงาน',
+                        'สร้างและร่างบันทึกข้อความภายในโรงเรียน',
+                        'ลงนามอิเล็กทรอนิกส์และเกษียนหนังสือตามสายงาน'
+                    ],
+                    'icon'          => 'bx-user-check',
+                    'badge_class'   => 'bg-success text-white',
+                    'border_class'  => 'border-success',
+                    'theme'         => 'theme-staff',
+                    'position_name' => (!empty($userWithDetails['position_name']) && !in_array($userWithDetails['position_name'], ['ผู้ดูแลระบบสูงสุด', 'เจ้าหน้าที่งานสารบรรณ'], true)) 
+                                        ? $userWithDetails['position_name'] : 'ครูผู้สอน',
+                    'can_sign_final'=> false,
+                ],
+            ];
+        }
+
+        // 2. กรณีเป็น Admin ปกติ (สลับระหว่าง Admin สารบรรณ กับ บทบาทตามสายงานของตนเอง)
+        if ($masterRole === 'admin') {
+            $staffRole = ($person && in_array($person['pers_position'], ['posi_001', 'posi_002'], true)) ? 'executive' : 'teacher';
+            return [
+                'admin' => [
+                    'key'           => 'admin',
+                    'title'         => 'Admin งานสารบรรณ',
+                    'role_badge'    => 'เจ้าหน้าที่สารบรรณ',
+                    'subtitle'      => 'งานสารบรรณและทะเบียนหนังสือ',
+                    'description'   => 'ลงรับ-ส่งหนังสือราชการ ออกเลขทะเบียน คุมเล่มทะเบียน และกำหนดเส้นทางเดินแฟ้มเกษียนหนังสือ',
+                    'features'      => [
+                        'ลงรับและส่งหนังสือราชการภายนอก-ภายใน',
+                        'ออกเลขทะเบียนหนังสือและคุมเล่มทะเบียนระบบ',
+                        'กำหนดเส้นทางเดินเอกสารและแฟ้มเสนอเกษียน'
+                    ],
+                    'icon'          => 'bx-folder-open',
+                    'badge_class'   => 'bg-info text-white',
+                    'border_class'  => 'border-info',
+                    'theme'         => 'theme-admin',
+                    'position_name' => 'เจ้าหน้าที่งานสารบรรณ',
+                    'can_sign_final'=> false,
+                ],
+                $staffRole => [
+                    'key'           => $staffRole,
+                    'title'         => ($staffRole === 'executive') ? 'ฝ่ายบริหารสถานศึกษา' : 'ครู / ผู้ใช้งานทั่วไป',
+                    'role_badge'    => ($staffRole === 'executive') ? 'ฝ่ายบริหาร' : 'บุคลากรโรงเรียน',
+                    'subtitle'      => !empty($userWithDetails['position_name']) ? $userWithDetails['position_name'] : 'บุคลากรโรงเรียน',
+                    'description'   => ($staffRole === 'executive')
+                        ? 'พิจารณาสั่งการ อนุมัติหนังสือราชการ ขอไปราชการ และลงนามดิจิทัลขั้นสุดท้าย'
+                        : 'ยื่นขออนุมัติไปราชการ สร้างบันทึกข้อความภายใน เสนอคำสั่ง และลงนาม/เกษียนตามสายงาน',
+                    'features'      => ($staffRole === 'executive')
+                        ? [
+                            'พิจารณาสั่งการและอนุมัติหนังสือราชการ',
+                            'ลงนามดิจิทัลและเกษียนหนังสือขั้นสุดท้าย',
+                            'ตรวจติดตามสถานะงานและเอกสารสำคัญของโรงเรียน'
+                        ]
+                        : [
+                            'ยื่นขออนุมัติไปราชการและรายงานผลปฏิบัติงาน',
+                            'สร้างและร่างบันทึกข้อความภายในโรงเรียน',
+                            'ลงนามอิเล็กทรอนิกส์และเกษียนหนังสือตามสายงาน'
+                        ],
+                    'icon'          => ($staffRole === 'executive') ? 'bx-award' : 'bx-user-check',
+                    'badge_class'   => 'bg-success text-white',
+                    'border_class'  => 'border-success',
+                    'theme'         => ($staffRole === 'executive') ? 'theme-executive' : 'theme-staff',
+                    'position_name' => !empty($userWithDetails['position_name']) ? $userWithDetails['position_name'] : ($staffRole === 'executive' ? 'ผู้อำนวยการโรงเรียน' : 'ครูผู้สอน'),
+                    'can_sign_final'=> ($staffRole === 'executive'),
+                ],
+            ];
+        }
+
+        return [];
     }
 
     /**
@@ -331,17 +445,40 @@ class AuthController extends BaseController
             return redirect()->to('/login');
         }
 
-        if (!session()->get('has_dual_roles')) {
+        $userId = session()->get('user_id');
+        $user = $this->userModel->find($userId);
+        if (!$user) {
+            return redirect()->to('/logout');
+        }
+
+        $userWithDetails = $this->userModel->getUserWithDetails($userId);
+        $masterRole = $user['role'] ?? 'teacher';
+
+        // คำนวณสิทธิ์ที่เลือกได้ใหม่เสมอแบบ Real-time
+        $availableRoles = $this->buildAvailableRoles($masterRole, $userWithDetails);
+        $hasDualRoles = (count($availableRoles) > 1);
+
+        if (!$hasDualRoles) {
             return redirect()->to('/admin/dashboard');
         }
 
+        session()->set([
+            'master_role'     => $masterRole,
+            'is_super_admin'  => ($masterRole === 'super_admin'),
+            'has_dual_roles'  => true,
+            'available_roles' => $availableRoles,
+            'user_img'        => $userWithDetails['img'] ?? session()->get('user_img'),
+        ]);
+
         return view('auth/select_role', [
-            'availableRoles' => session()->get('available_roles') ?? [],
+            'availableRoles' => $availableRoles,
             'currentRole'    => session()->get('role'),
             'fullName'       => session()->get('full_name'),
             'email'          => session()->get('email'),
             'positionName'   => session()->get('position_name'),
             'departmentName' => session()->get('department_name'),
+            'userImg'        => session()->get('user_img'),
+            'isSuperAdmin'   => ($masterRole === 'super_admin'),
         ]);
     }
 
@@ -361,17 +498,25 @@ class AuthController extends BaseController
             return redirect()->to('/select-role')->with('error', 'สิทธิ์ที่เลือกไม่ถูกต้อง');
         }
 
-        session()->set([
+        $roleConfig = $availableRoles[$selectedRole];
+        $sessionUpdates = [
             'role'           => $selectedRole,
             'can_sign_final' => ($selectedRole === 'super_admin' || $selectedRole === 'executive'),
-        ]);
+        ];
 
-        $roleTitle = $availableRoles[$selectedRole]['title'] ?? $selectedRole;
+        // หากเป็น Super Admin ให้ปรับชื่อตำแหน่งชั่วคราวตามบทบาทที่สวมบทบาทนั้น ๆ ด้วย เพื่อความสมจริงในการออกเอกสาร/ลงนาม
+        if (session()->get('master_role') === 'super_admin' && !empty($roleConfig['position_name'])) {
+            $sessionUpdates['position_name'] = $roleConfig['position_name'];
+        }
+
+        session()->set($sessionUpdates);
+
+        $roleTitle = $roleConfig['title'] ?? $selectedRole;
         return redirect()->to('/admin/dashboard')->with('success', 'เข้าสู่ระบบในฐานะ: ' . $roleTitle . ' เรียบร้อยแล้ว');
     }
 
     /**
-     * สลับสิทธิ์ระหว่าง Admin กับ ครู ในขณะใช้งานระบบ
+     * สลับสิทธิ์ระหว่างบทบาทต่าง ๆ ในขณะใช้งานระบบ (1-Click Switch)
      */
     public function switchRole($role)
     {
@@ -384,12 +529,20 @@ class AuthController extends BaseController
             return redirect()->back()->with('error', 'ไม่สามารถสลับไปยังสิทธิ์นี้ได้');
         }
 
-        session()->set([
+        $roleConfig = $availableRoles[$role];
+        $sessionUpdates = [
             'role'           => $role,
             'can_sign_final' => ($role === 'super_admin' || $role === 'executive'),
-        ]);
+        ];
 
-        $roleTitle = $availableRoles[$role]['title'] ?? $role;
+        // หากเป็น Super Admin ให้ปรับชื่อตำแหน่งชั่วคราวตามบทบาทที่สวมบทบาทนั้น ๆ ด้วย
+        if (session()->get('master_role') === 'super_admin' && !empty($roleConfig['position_name'])) {
+            $sessionUpdates['position_name'] = $roleConfig['position_name'];
+        }
+
+        session()->set($sessionUpdates);
+
+        $roleTitle = $roleConfig['title'] ?? $role;
         return redirect()->to('/admin/dashboard')->with('success', 'สลับสิทธิ์การใช้งานเป็น: ' . $roleTitle . ' เรียบร้อยแล้ว');
     }
 

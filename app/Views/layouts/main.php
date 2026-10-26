@@ -422,13 +422,28 @@
                     try {
                         $db = \Config\Database::connect();
                         // 1. งานรอฉันลงนาม/เกษียน
-                        $pendingSignCount = $db->table('document_routes')
+                        $persId = (string) (session()->get('pers_id') ?? '');
+                        $isExecutiveOrAdmin = in_array($userRole, ['executive', 'super_admin'], true);
+
+                        $signBuilder = $db->table('document_routes')
                             ->join('documents', 'documents.id = document_routes.document_id')
-                            ->where('document_routes.user_id', $userId)
                             ->where('document_routes.status', 'pending')
                             ->where('documents.current_step = document_routes.step_order')
-                            ->where('documents.status', 'routing')
-                            ->countAllResults();
+                            ->where('documents.status', 'routing');
+
+                        $signBuilder->groupStart()
+                            ->where('document_routes.user_id', $userId);
+                        if (!empty($persId)) {
+                            $signBuilder->orWhere('document_routes.pers_id', $persId);
+                        }
+                        if ($isExecutiveOrAdmin) {
+                            $signBuilder->orWhere('document_routes.pers_id', 'pers_060')
+                                        ->orLike('document_routes.personnel_position', 'ผู้อำนวยการ')
+                                        ->orWhere('document_routes.user_id IS NULL', null, false);
+                        }
+                        $signBuilder->groupEnd();
+
+                        $pendingSignCount = $signBuilder->countAllResults();
 
                         // 2. สำหรับสารบรรณ / แอดมิน: บันทึกข้อความรอตรวจและออกเลข
                         if (in_array($userRole, ['saraban', 'admin', 'super_admin'], true)) {
@@ -444,6 +459,95 @@
                 ?>
                 <?php if (session()->get('logged_in')): ?>
                 <ul class="menu-inner py-1">
+                    <?php if ($userRole === 'executive'): ?>
+                    <!-- ==========================================
+                         เมนูเฉพาะฝ่ายบริหาร (Executive Focused Menu)
+                         เน้นเฉพาะ: 1. เกษียณหนังสือ  2. คลังเอกสารทั้งหมด
+                         ========================================== -->
+                    <!-- แดชบอร์ดภาพรวมผู้บริหาร -->
+                    <li class="menu-item <?= $isActiveMenu('dashboard', ['', 'dashboard']) ?>">
+                        <a href="<?= base_url('admin/dashboard') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-home-circle text-primary"></i>
+                            <div>แดชบอร์ดภาพรวม</div>
+                        </a>
+                    </li>
+
+                    <!-- หมวดที่ 1: งานเกษียณหนังสือและลงนาม -->
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">งานเกษียณหนังสือ</span>
+                    </li>
+                    <li class="menu-item <?= $isActiveMenu('documents_inbox', ['documents/inbox', 'documents/inbox/*']) ?>">
+                        <a href="<?= base_url('admin/documents/inbox') ?>" class="menu-link d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <i class="menu-icon tf-icons bx bx-edit-alt text-warning"></i>
+                                <div class="fw-bold">รอฉันลงนาม / เกษียณ</div>
+                            </div>
+                            <?php if ($pendingSignCount > 0): ?>
+                                <span class="badge rounded-pill bg-danger text-white fw-bold px-2 py-1 shadow-sm pulse-badge" style="font-size: 0.75rem;">
+                                    <?= $pendingSignCount ?>
+                                </span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= $isActiveMenu('documents_signed', ['documents/signed', 'documents/signed/*']) ?>">
+                        <a href="<?= base_url('admin/documents/signed') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-check-double text-success"></i>
+                            <div>หนังสือที่ฉันลงนามแล้ว</div>
+                        </a>
+                    </li>
+
+                    <!-- หมวดที่ 2: คลังเอกสารโรงเรียนทั้งหมด -->
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">คลังเอกสารโรงเรียนทั้งหมด</span>
+                    </li>
+                    <li class="menu-item <?= $isActiveMenu('center', ['center', 'center/*']) ?>">
+                        <a href="<?= base_url('admin/center') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-search-alt text-info"></i>
+                            <div>ศูนย์กลางค้นหาเอกสาร</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= ($currentUri === 'documents' || (str_starts_with($currentUri, 'documents/') && !in_array($currentUri, ['documents/inbox', 'documents/signed']) && !str_starts_with($currentUri, 'documents/inbox/') && !str_starts_with($currentUri, 'documents/signed/'))) ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/documents') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-mail-send text-primary"></i>
+                            <div>ทะเบียนหนังสือรับ - ส่ง</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= (str_starts_with($currentUri, 'memos') && !str_starts_with($currentUri, 'memos/create')) ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/memos') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-notepad text-primary"></i>
+                            <div>ทะเบียนบันทึกข้อความ</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= (str_starts_with($currentUri, 'orders') && !str_starts_with($currentUri, 'orders/create')) ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/orders') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-award text-warning"></i>
+                            <div>ทะเบียนคำสั่งโรงเรียน</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= ($currentUri === 'approvals' || (str_starts_with($currentUri, 'approvals/') && !str_starts_with($currentUri, 'approvals/create'))) ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/approvals') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-check-square text-success"></i>
+                            <div>ทะเบียนคำขออนุมัติ</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= ($currentUri === 'travel' || (str_starts_with($currentUri, 'travel/') && !str_starts_with($currentUri, 'travel/create'))) ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-briefcase-alt-2 text-primary"></i>
+                            <div>ทะเบียนไปราชการ</div>
+                        </a>
+                    </li>
+
+                    <!-- หมวดที่ 3: ส่วนตัว -->
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">ส่วนตัว</span>
+                    </li>
+                    <li class="menu-item <?= $isActiveMenu('profile', ['profile', 'profile/*']) ?>">
+                        <a href="<?= base_url('admin/profile') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-pencil text-info"></i>
+                            <div>ลายเซ็น e-Signature</div>
+                        </a>
+                    </li>
+                    <?php else: ?>
                     <!-- Dashboard -->
                     <li class="menu-item <?= $isActiveMenu('dashboard', ['', 'dashboard']) ?>">
                         <a href="<?= base_url('admin/dashboard') ?>" class="menu-link">
@@ -459,6 +563,7 @@
                         </a>
                     </li>
 
+                    <?php if (!in_array($userRole, ['admin', 'saraban', 'super_admin'], true)): ?>
                     <!-- ==========================================
                          งานของฉันและการติดตาม (Personal Workspace)
                          ========================================== -->
@@ -490,6 +595,7 @@
                             <div>หนังสือที่ฉันลงนามแล้ว</div>
                         </a>
                     </li>
+                    <?php endif; ?>
 
                     <!-- ==========================================
                          ประเภทหนังสือราชการ (6 ชนิดตามระเบียบงานสารบรรณ)
@@ -499,14 +605,14 @@
                     </li>
 
                     <!-- 1. หนังสือภายนอก -->
-                    <li class="menu-item <?= str_starts_with($currentUri, 'documents') && !in_array($currentUri, ['documents/inbox', 'documents/my', 'documents/signed']) && !str_starts_with($currentUri, 'documents/inbox/') && !str_starts_with($currentUri, 'documents/my/') && !str_starts_with($currentUri, 'documents/signed/') && (string) service('request')->getGet('type') !== 'order' ? 'open' : '' ?>">
+                    <li class="menu-item <?= (str_starts_with($currentUri, 'inbound') || (str_starts_with($currentUri, 'documents') && !in_array($currentUri, ['documents/inbox', 'documents/my', 'documents/signed']) && !str_starts_with($currentUri, 'documents/inbox/') && !str_starts_with($currentUri, 'documents/my/') && !str_starts_with($currentUri, 'documents/signed/') && (string) service('request')->getGet('type') !== 'order')) ? 'open' : '' ?>">
                         <a href="javascript:void(0)" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons bx bx-mail-send text-info"></i>
                             <div>1. หนังสือภายนอก</div>
                         </a>
                         <ul class="menu-sub">
-                            <li class="menu-item <?= $currentUri === 'documents' && (string) service('request')->getGet('type') === 'in' ? 'active' : '' ?>">
-                                <a href="<?= base_url('admin/documents?type=in') ?>" class="menu-link">
+                            <li class="menu-item <?= ($currentUri === 'inbound' || str_starts_with($currentUri, 'inbound/')) ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/inbound') ?>" class="menu-link">
                                     <div>ทะเบียนหนังสือรับ</div>
                                 </a>
                             </li>
@@ -515,11 +621,13 @@
                                     <div>ทะเบียนหนังสือส่ง</div>
                                 </a>
                             </li>
-                            <li class="menu-item <?= $currentUri === 'documents/create' ? 'active' : '' ?>">
-                                <a href="<?= base_url('admin/documents/create') ?>" class="menu-link">
-                                    <div>ลงทะเบียน / ส่งหนังสือ</div>
+                            <?php if (in_array($userRole, ['super_admin', 'admin', 'saraban'], true)): ?>
+                            <li class="menu-item <?= $currentUri === 'inbound/create' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/inbound/create') ?>" class="menu-link">
+                                    <div>ลงทะเบียนรับหนังสือเข้า</div>
                                 </a>
                             </li>
+                            <?php endif; ?>
                         </ul>
                     </li>
 
@@ -571,18 +679,25 @@
                         </ul>
                     </li>
 
-                    <!-- 4. หนังสือสั่งการ -->
-                    <li class="menu-item <?= $currentUri === 'documents' && (string) service('request')->getGet('type') === 'order' ? 'open' : '' ?>">
+                    <!-- 4. หนังสือสั่งการ (คำสั่งโรงเรียน) -->
+                    <li class="menu-item <?= str_starts_with($currentUri, 'orders') || ($currentUri === 'documents' && (string) service('request')->getGet('type') === 'order') ? 'open active' : '' ?>">
                         <a href="javascript:void(0)" class="menu-link menu-toggle">
-                            <i class="menu-icon tf-icons bx bx-file text-warning"></i>
+                            <i class="menu-icon tf-icons bx bx-award text-warning"></i>
                             <div>4. หนังสือสั่งการ</div>
                         </a>
                         <ul class="menu-sub">
-                            <li class="menu-item <?= $currentUri === 'documents' && (string) service('request')->getGet('type') === 'order' ? 'active' : '' ?>">
-                                <a href="<?= base_url('admin/documents?type=order') ?>" class="menu-link">
+                            <li class="menu-item <?= $currentUri === 'orders' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/orders') ?>" class="menu-link">
                                     <div>ทะเบียนคำสั่งโรงเรียน</div>
                                 </a>
                             </li>
+                            <?php if ($userRole !== 'executive'): ?>
+                            <li class="menu-item <?= $currentUri === 'orders/create' ? 'active' : '' ?>">
+                                <a href="<?= base_url('admin/orders/create') ?>" class="menu-link">
+                                    <div>ร่างคำสั่งโรงเรียนใหม่</div>
+                                </a>
+                            </li>
+                            <?php endif; ?>
                             <li class="menu-item disabled">
                                 <a href="javascript:void(0)" class="menu-link text-muted">
                                     <div>ระเบียบ / ข้อบังคับ (เร็ว ๆ นี้)</div>
@@ -721,7 +836,8 @@
                                 <div>จัดการฐานข้อมูล (PMA)</div>
                             </a>
                         </li>
-                    <?php endif; ?>
+                    <?php endif; // end super_admin / admin check ?>
+                    <?php endif; // end userRole === executive check ?>
 
                     <!-- หน้าแรกสาธารณะ (Public Portal) -->
                     <li class="menu-item">
@@ -788,6 +904,10 @@
                                     <?php elseif (session()->get('role') === 'admin'): ?>
                                         <span class="badge bg-info text-white py-1 px-2 fw-semibold">
                                             <i class="bx bx-folder-open me-1"></i> Admin (สารบรรณ)
+                                        </span>
+                                    <?php elseif (session()->get('role') === 'executive'): ?>
+                                        <span class="badge bg-warning text-dark py-1 px-2 fw-semibold">
+                                            <i class="bx bx-award me-1"></i> ฝ่ายบริหาร
                                         </span>
                                     <?php else: ?>
                                         <span class="badge bg-success text-white py-1 px-2 fw-semibold">
@@ -1007,7 +1127,17 @@
                             <?php foreach (session()->get('available_roles') as $rKey => $rVal): ?>
                                 <?php 
                                     $isCurrent = (session()->get('role') === $rKey);
-                                    $isAdmin = in_array($rKey, ['super_admin', 'admin'], true);
+                                    $avatarBg = $rVal['badge_class'] ?? 'bg-primary text-white';
+                                    $btnClass = 'btn-primary';
+                                    if ($rKey === 'super_admin') {
+                                        $btnClass = 'btn-primary';
+                                    } elseif ($rKey === 'admin') {
+                                        $btnClass = 'btn-info text-white';
+                                    } elseif ($rKey === 'executive') {
+                                        $btnClass = 'btn-warning text-dark';
+                                    } else {
+                                        $btnClass = 'btn-success text-white';
+                                    }
                                 ?>
                                 <div class="col-md-6">
                                     <div class="p-3 border rounded-3 h-100 d-flex flex-column justify-content-between position-relative <?= $isCurrent ? 'border-primary bg-label-primary' : 'bg-white' ?>" style="border-width: 2px !important;">
@@ -1020,7 +1150,7 @@
                                         <div>
                                             <div class="d-flex align-items-center mb-2">
                                                 <div class="avatar avatar-sm me-2">
-                                                    <span class="avatar-initial rounded <?= $isAdmin ? 'bg-primary text-white' : 'bg-success text-white' ?>">
+                                                    <span class="avatar-initial rounded <?= esc($avatarBg) ?>">
                                                         <i class="bx <?= esc($rVal['icon']) ?>"></i>
                                                     </span>
                                                 </div>
@@ -1040,7 +1170,7 @@
                                                     <i class="bx bx-check-circle me-1"></i> กำลังอยู่ในบทบาทนี้
                                                 </button>
                                             <?php else: ?>
-                                                <a href="<?= base_url('switch-role/' . $rKey) ?>" class="btn <?= $isAdmin ? 'btn-primary' : 'btn-success' ?> btn-sm w-100 fw-bold shadow-xs">
+                                                <a href="<?= base_url('switch-role/' . $rKey) ?>" class="btn <?= $btnClass ?> btn-sm w-100 fw-bold shadow-xs">
                                                     <i class="bx bx-sync me-1"></i> สลับเป็นสิทธิ์นี้ทันที
                                                 </a>
                                             <?php endif; ?>
@@ -1054,5 +1184,8 @@
             </div>
         </div>
     <?php endif; ?>
+
+    <!-- Render page-specific scripts -->
+    <?= $this->renderSection('scripts') ?>
 </body>
 </html>

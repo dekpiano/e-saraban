@@ -403,9 +403,85 @@ class UserModel extends Model
             $email = strtolower(trim($p['pers_username'] ?? ''));
             $p['user_id'] = $userPersMap[$p['pers_id']] ?? ($userEmailMap[$email] ?? null);
         }
-        unset($p);
-
         return $personnel;
     }
+
+    /**
+     * ดึงข้อมูลผู้บริหาร (ผอ. และ รอง ผอ.) ทั้งหมดที่กำลังปฏิบัติงานจริงจาก tb_personnel
+     */
+    public function getExecutivePersonnelList(): array
+    {
+        $db = \Config\Database::connect();
+        try {
+            $rows = $db->table('skjacth_personnel.tb_personnel p')
+                       ->select('p.pers_id, p.pers_prefix, p.pers_firstname, p.pers_lastname, p.pers_position, pos.posi_name, u.signature_img')
+                       ->join('skjacth_skj.tb_position pos', 'pos.posi_id = p.pers_position', 'left')
+                       ->join('users u', 'u.pers_id = p.pers_id OR u.username = p.pers_username', 'left')
+                       ->whereIn('p.pers_position', ['posi_001', 'posi_002'])
+                       ->where('p.pers_status', 'กำลังใช้งาน')
+                       ->orderBy("CASE WHEN p.pers_position = 'posi_001' THEN 1 ELSE 2 END", 'ASC', false)
+                       ->orderBy('p.pers_id', 'ASC')
+                       ->get()
+                       ->getResultArray();
+
+            $list = [];
+            foreach ($rows as $r) {
+                $fullName = trim(($r['pers_prefix'] ?? '') . ($r['pers_firstname'] ?? '') . ' ' . ($r['pers_lastname'] ?? ''));
+                $posName = ($r['pers_position'] === 'posi_001')
+                    ? 'ผู้อำนวยการโรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์'
+                    : 'รองผู้อำนวยการโรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์';
+                $list[] = [
+                    'pers_id'       => $r['pers_id'],
+                    'full_name'     => $fullName,
+                    'position_code' => $r['pers_position'],
+                    'position_name' => $posName,
+                    'posi_name'     => $r['posi_name'] ?? '',
+                    'signature_img' => $r['signature_img'] ?? null,
+                    'is_director'   => ($r['pers_position'] === 'posi_001'),
+                ];
+            }
+            return $list;
+        } catch (\Throwable $e) {
+            log_message('error', 'getExecutivePersonnelList error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * ดึงข้อมูลผู้อำนวยการคนปัจจุบันจาก tb_personnel เป็นค่าเริ่มต้น
+     */
+    public function getDefaultDirector(): array
+    {
+        $execs = $this->getExecutivePersonnelList();
+        foreach ($execs as $ex) {
+            if ($ex['is_director']) {
+                return $ex;
+            }
+        }
+        return [
+            'pers_id'       => 'pers_060',
+            'full_name'     => 'นายพงษ์ศักดิ์ เงินสันเทียะ',
+            'position_code' => 'posi_001',
+            'position_name' => 'ผู้อำนวยการโรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์',
+            'posi_name'     => 'ผู้อำนวยการสถานศึกษา',
+            'signature_img' => null,
+            'is_director'   => true,
+        ];
+    }
+
+    /**
+     * ดึงข้อมูลบุคลากรรายบุคคลจาก pers_id
+     */
+    public function getPersonnelDetails(string $persId): ?array
+    {
+        $persList = $this->getPersonnelForSelection();
+        foreach ($persList as $p) {
+            if ((string)($p['pers_id'] ?? '') === $persId) {
+                return $p;
+            }
+        }
+        return null;
+    }
 }
+
 

@@ -35,11 +35,14 @@
         if (customText) return customText;
 
         const rawText = (btn.textContent || btn.innerText || btn.value || '').trim();
-        if (!rawText) return ''; // ปุ่มที่มีเฉพาะไอคอน
+        if (!rawText) return 'กำลังดำเนินการ...';
 
         // 2. ตรวจสอบบริบทภาษาไทย
-        if (rawText.includes('บันทึก')) return 'กำลังบันทึก...';
-        if (rawText.includes('ลงนาม') || rawText.includes('เกษียน')) return 'กำลังลงนาม...';
+        if (rawText.includes('ออกเลข')) return 'กำลังออกเลขและส่งเกษียน...';
+        if (rawText.includes('บันทึกร่าง') || rawText.includes('ฉบับร่าง')) return 'กำลังบันทึกร่าง...';
+        if (rawText.includes('บันทึกและเสนอ') || rawText.includes('บันทึกและส่ง')) return 'กำลังบันทึกและส่งเรื่อง...';
+        if (rawText.includes('บันทึก')) return 'กำลังบันทึกข้อมูล...';
+        if (rawText.includes('ลงนาม') || rawText.includes('เกษียน')) return 'กำลังลงนามเกษียน...';
         if (rawText.includes('อนุมัติ')) return 'กำลังอนุมัติ...';
         if (rawText.includes('ส่งคืน')) return 'กำลังส่งคืน...';
         if (rawText.includes('ส่งมอบ') || rawText.includes('ส่งเรื่อง') || rawText.includes('ส่งรายงาน')) return 'กำลังส่งข้อมูล...';
@@ -79,10 +82,10 @@
 
         // 3. เตรียมไอคอน Spinner และข้อความ
         const text = customText !== undefined ? customText : resolveLoadingText(btn);
-        const spinnerHtml = '<span class="spinner-border spinner-border-sm ' + (text ? 'me-2' : '') + '" role="status" aria-hidden="true" style="vertical-align: -0.125em;"></span>';
+        const spinnerHtml = '<span class="spinner-border spinner-border-sm ' + (text ? 'me-1.5' : '') + '" role="status" aria-hidden="true" style="vertical-align: -0.125em;"></span> ';
 
         if (btn.tagName === 'INPUT') {
-            btn.value = text || 'กำลังโหลด...';
+            btn.value = text || 'กำลังดำเนินการ...';
         } else {
             btn.innerHTML = spinnerHtml + (text ? '<span class="loading-label">' + text + '</span>' : '');
         }
@@ -92,15 +95,27 @@
         btn.style.pointerEvents = 'none';
         btn.setAttribute('aria-disabled', 'true');
 
+        // ปิดปุ่มคู่หูใน btn-group (เช่น dropdown-toggle-split) ถ้ามี
+        const btnGroup = btn.closest('.btn-group');
+        if (btnGroup) {
+            btnGroup.querySelectorAll('button, .dropdown-toggle').forEach(function(sibling) {
+                if (sibling !== btn) {
+                    sibling.classList.add('disabled');
+                    sibling.setAttribute('aria-disabled', 'true');
+                    sibling.style.pointerEvents = 'none';
+                }
+            });
+        }
+
         // ดีเลย์ปิดปุ่มจริงนิดเดียวเพื่อให้ browser ส่งค่า name/value ของปุ่มไปยัง request ได้อย่างถูกต้อง
         setTimeout(function () {
             btn.disabled = true;
         }, 30);
 
-        // 5. ป้องกันกรณีค้าง (Safeguard 20 วินาที คืนค่าเดิมหากหน้าไม่ reload เช่น ดาวน์โหลดไฟล์เสร็จ)
+        // 5. ป้องกันกรณีค้าง (Safeguard 25 วินาที คืนค่าเดิมหากหน้าไม่ reload เช่น ดาวน์โหลดไฟล์เสร็จ หรือเกิดข้อผิดพลาด)
         setTimeout(function () {
             restoreOriginalState(btn);
-        }, 20000);
+        }, 25000);
     }
 
     /**
@@ -124,6 +139,18 @@
                 btn.innerHTML = originalHtml;
             }
             btn.removeAttribute('data-original-html');
+        }
+
+        // ปลดล็อกปุ่มคู่หูใน btn-group
+        const btnGroup = btn.closest('.btn-group');
+        if (btnGroup) {
+            btnGroup.querySelectorAll('button, .dropdown-toggle').forEach(function(sibling) {
+                if (sibling !== btn) {
+                    sibling.classList.remove('disabled');
+                    sibling.removeAttribute('aria-disabled');
+                    sibling.style.pointerEvents = '';
+                }
+            });
         }
     }
 
@@ -305,6 +332,13 @@
                 return;
             }
             applyLoadingState(btn);
+
+            // แสดง SweetAlert2 Loading Modal เสริมทันทีถ้าเป็นฟอร์ม POST และไม่ได้ปิด data-no-swal="true"
+            const isGet = (form.method || 'GET').toUpperCase() === 'GET';
+            if (!isGet && form.getAttribute('data-no-swal') !== 'true' && window.AppAlert && typeof window.AppAlert.showLoading === 'function') {
+                const text = resolveLoadingText(btn);
+                window.AppAlert.showLoading(text || 'กำลังดำเนินการ...', 'ระบบกำลังประมวลผลข้อมูล กรุณารอสักครู่');
+            }
         }, 0);
     }
 
@@ -319,6 +353,9 @@
                 if (e.isDefaultPrevented()) {
                     const btn = form.querySelector('.is-loading-btn');
                     if (btn) restoreOriginalState(btn);
+                    if (window.AppAlert && typeof window.AppAlert.closeLoading === 'function') {
+                        window.AppAlert.closeLoading();
+                    }
                 }
             }, 10);
         });
@@ -330,10 +367,15 @@
         const form = this;
         let btn = form.__activeSubmitButton || activeSubmitButton;
         if (!btn || !form.contains(btn)) {
-            btn = form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
+            btn = form.querySelector('button[type="submit"], input[type="submit"], button:not([type]), [data-submit-loading], #btnSubmitMemo, #btnSubmitEdit');
         }
         if (btn) {
             applyLoadingState(btn);
+        }
+        const isGet = (form.method || 'GET').toUpperCase() === 'GET';
+        if (!isGet && form.getAttribute('data-no-swal') !== 'true' && window.AppAlert && typeof window.AppAlert.showLoading === 'function') {
+            const text = resolveLoadingText(btn);
+            window.AppAlert.showLoading(text || 'กำลังประมวลผลข้อมูล...', 'ระบบกำลังบันทึกข้อมูล กรุณารอสักครู่');
         }
         return nativeFormSubmit.apply(form, arguments);
     };

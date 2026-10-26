@@ -13,11 +13,13 @@
                     </h5>
                     <small class="text-muted">ระบบติดตามคำขออนุมัติเดินทางไปราชการ/อบรมพัฒนาตนเองของบุคลากรในโรงเรียน</small>
                 </div>
+                <?php if (session()->get('role') !== 'executive'): ?>
                 <div class="d-flex gap-2">
                     <a href="<?= base_url('admin/travel/create') ?>" class="btn btn-primary">
                         <i class="bx bx-plus me-1"></i> ยื่นขออนุมัติไปราชการ
                     </a>
                 </div>
+                <?php endif; ?>
             </div>
 
             <!-- Filter Tabs -->

@@ -86,11 +86,13 @@
                     </h5>
                     <small class="text-muted">จัดทำบันทึกข้อความ ส่งสารบรรณตรวจสอบ ออกเลข และเดินเรื่องเกษียนออนไลน์</small>
                 </div>
+                <?php if (session()->get('role') !== 'executive'): ?>
                 <div class="d-flex gap-2">
                     <a href="<?= base_url('admin/memos/create') ?>" class="btn btn-primary fw-semibold shadow-sm">
                         <i class="bx bx-edit me-1"></i> เขียน/ออกเลขบันทึกข้อความใหม่
                     </a>
                 </div>
+                <?php endif; ?>
             </div>
 
             <!-- Filter Tabs & Search Bar -->
@@ -171,9 +173,11 @@
                                     <div class="mb-2"><i class="bx bx-folder-open fs-1 text-muted"></i></div>
                                     <h6 class="text-dark fw-bold mb-1">ไม่พบบันทึกข้อความ</h6>
                                     <p class="small text-muted mb-3">ยังไม่มีบันทึกข้อความในเงื่อนไขที่เลือก หรือยังไม่มีการสร้างบันทึกข้อความใหม่</p>
+                                    <?php if (session()->get('role') !== 'executive'): ?>
                                     <a href="<?= base_url('admin/memos/create') ?>" class="btn btn-primary btn-sm">
                                         <i class="bx bx-plus me-1"></i> เขียนบันทึกข้อความฉบับแรก
                                     </a>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php else: ?>
@@ -233,6 +237,10 @@
                                             <span class="badge bg-danger text-white fw-bold">
                                                 <i class="bx bx-reply me-1"></i> ส่งคืนให้แก้ไข
                                             </span>
+                                        <?php elseif ($memo['status'] === 'pending_saraban'): ?>
+                                            <span class="badge bg-info text-white fw-bold">
+                                                <i class="bx bx-time-five me-1"></i> รอสารบรรณออกเลข
+                                            </span>
                                         <?php elseif ($memo['status'] === 'draft'): ?>
                                             <span class="badge bg-secondary text-white">
                                                 <i class="bx bx-file-blank me-1"></i> ฉบับร่าง
@@ -249,7 +257,7 @@
                                             <a href="<?= base_url('admin/memos/' . $memo['id'] . '/print') ?>" target="_blank" class="btn btn-outline-secondary" title="พิมพ์ขนาด A4">
                                                 <i class="bx bx-printer"></i>
                                             </a>
-                                            <?php if ($memo['status'] === 'draft' || $memo['status'] === 'returned'): ?>
+                                            <?php if (in_array($memo['status'], ['draft', 'returned', 'pending_saraban'], true)): ?>
                                                 <a href="<?= base_url('admin/memos/' . $memo['id'] . '/edit') ?>" class="btn btn-outline-warning" title="แก้ไขข้อความ">
                                                     <i class="bx bx-edit"></i>
                                                 </a>

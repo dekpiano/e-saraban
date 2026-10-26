@@ -397,9 +397,48 @@
         return fp;
     }
 
+    /**
+     * Auto-initialize all date inputs to Thai Buddhist Era (พ.ศ.) across the entire system
+     */
+    function autoInitThaiDatePickers(container) {
+        if (typeof document === 'undefined') return;
+        var rootEl = container || document;
+
+        // 1. Inputs with explicit class or attribute
+        var customInputs = rootEl.querySelectorAll('.flatpickr-thai-input:not([data-fp-ready]), .thai-datepicker:not([data-fp-ready]), input[data-thai-date]:not([data-fp-ready])');
+        if (customInputs.length > 0) {
+            customInputs.forEach(function (el) {
+                el.setAttribute('data-fp-ready', '1');
+            });
+            initThaiDatePicker(customInputs);
+        }
+
+        // 2. Standard HTML5 date inputs - convert to Buddhist Era flatpickr automatically
+        var standardDateInputs = rootEl.querySelectorAll('input[type="date"]:not(.no-thai-flatpickr):not([data-fp-ready])');
+        if (standardDateInputs.length > 0) {
+            standardDateInputs.forEach(function (el) {
+                el.setAttribute('data-fp-ready', '1');
+                el.setAttribute('type', 'text');
+                el.classList.add('flatpickr-thai-input');
+            });
+            initThaiDatePicker(standardDateInputs);
+        }
+    }
+
+    if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                autoInitThaiDatePickers(document);
+            });
+        } else {
+            autoInitThaiDatePickers(document);
+        }
+    }
+
     // Exports
     root.thaiBuddhistYearDisplayPlugin = thaiBuddhistYearDisplayPlugin;
     root.initThaiDatePicker = initThaiDatePicker;
+    root.autoInitThaiDatePickers = autoInitThaiDatePickers;
     root.formatThaiDate = formatThaiDate;
     root.parseThaiDate = parseThaiDate;
 

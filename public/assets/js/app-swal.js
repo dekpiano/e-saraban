@@ -231,6 +231,59 @@
             if (customSwal) {
                 customSwal.close();
             }
+        },
+
+        // แสดงหน้าจอ Loading แบบ SweetAlert2 ป้องกันการกดซ้ำ
+        showLoading: function(title, text) {
+            if (!customSwal) return;
+            return customSwal.fire({
+                title: title || 'กำลังดำเนินการ...',
+                html: `<div class="d-flex flex-column align-items-center justify-content-center py-2" style="font-family:'K2D', sans-serif;">
+                    <div class="spinner-border text-primary mb-3" style="width: 3.2rem; height: 3.2rem; border-width: 0.3em;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="text-secondary fw-semibold">${text || 'ระบบกำลังประมวลผลข้อมูล กรุณารอสักครู่'}</div>
+                </div>`,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false
+            });
+        },
+
+        closeLoading: function() {
+            if (customSwal) {
+                customSwal.close();
+            }
+        },
+
+        // ปรับปุ่มให้แสดง Spinner และ disable ป้องกัน double-click
+        setButtonLoading: function(btn, loadingText) {
+            if (window.SubmitLoading && typeof window.SubmitLoading.set === 'function') {
+                return window.SubmitLoading.set(btn, loadingText);
+            }
+            if (!btn) return;
+            if (typeof btn === 'string') btn = document.querySelector(btn);
+            if (!btn) return;
+
+            btn.dataset.originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.classList.add('disabled');
+            const text = loadingText || 'กำลังบันทึก...';
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1.5" role="status" aria-hidden="true"></span> ${text}`;
+        },
+
+        resetButtonLoading: function(btn) {
+            if (window.SubmitLoading && typeof window.SubmitLoading.reset === 'function') {
+                return window.SubmitLoading.reset(btn);
+            }
+            if (!btn) return;
+            if (typeof btn === 'string') btn = document.querySelector(btn);
+            if (!btn || !btn.dataset.originalHtml) return;
+
+            btn.innerHTML = btn.dataset.originalHtml;
+            btn.disabled = false;
+            btn.classList.remove('disabled');
+            delete btn.dataset.originalHtml;
         }
     };
 
