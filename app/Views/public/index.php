@@ -644,28 +644,8 @@
                 <div class="d-none d-xl-flex align-items-center">
                     <ul class="navbar-nav flex-row align-items-center gap-1">
                         <li class="nav-item">
-                            <a class="nav-link <?= empty($currentType) ? 'active' : '' ?>" href="<?= base_url('/') ?>">
-                                <i class="bx bx-file-find me-1"></i> ติดตามหนังสือ
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?= $currentType === 'in' ? 'active' : '' ?>" href="javascript:void(0)" onclick="filterTableByType('in')">
-                                <i class="bx bx-log-in-circle me-1 text-primary"></i> หนังสือรับ
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?= $currentType === 'out' ? 'active' : '' ?>" href="javascript:void(0)" onclick="filterTableByType('out')">
-                                <i class="bx bx-log-out-circle me-1 text-success"></i> หนังสือส่ง
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?= $currentType === 'order' ? 'active' : '' ?>" href="javascript:void(0)" onclick="filterTableByType('order')">
-                                <i class="bx bx-award me-1 text-warning"></i> คำสั่ง รร.
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?= $currentType === 'travel' ? 'active' : '' ?>" href="javascript:void(0)" onclick="filterTableByType('travel')">
-                                <i class="bx bx-briefcase-alt-2 me-1 text-info"></i> ขอไปราชการ
+                            <a class="nav-link active" href="<?= base_url('/') ?>">
+                                <i class="bx bx-briefcase-alt-2 me-1 text-info"></i> ติดตามขอไปราชการ
                             </a>
                         </li>
                     </ul>
@@ -712,33 +692,8 @@
             <div class="offcanvas-body p-3 d-flex flex-column justify-content-between">
                 <ul class="nav nav-pills flex-column gap-1">
                     <li class="nav-item">
-                        <a class="nav-link <?= empty($currentType) ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="<?= base_url('/') ?>">
-                            <i class="bx bx-file-find me-2 text-primary fs-5 align-middle"></i> ติดตามหนังสือราชการ
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $currentType === 'in' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('in')">
-                            <i class="bx bx-log-in-circle me-2 text-primary fs-5 align-middle"></i> หนังสือรับ (ภายนอก)
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $currentType === 'out' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('out')">
-                            <i class="bx bx-log-out-circle me-2 text-success fs-5 align-middle"></i> หนังสือส่ง (ภายนอก)
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $currentType === 'internal' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('internal')">
-                            <i class="bx bx-message-detail me-2 text-info fs-5 align-middle"></i> บันทึกข้อความ (ภายใน)
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $currentType === 'order' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('order')">
-                            <i class="bx bx-award me-2 text-warning fs-5 align-middle"></i> คำสั่งโรงเรียน
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $currentType === 'travel' ? 'active fw-bold' : 'text-dark fw-semibold' ?> py-2" href="javascript:void(0)" onclick="filterTableByType('travel')">
-                            <i class="bx bx-briefcase-alt-2 me-2 text-info fs-5 align-middle"></i> ขออนุมัติไปราชการ
+                        <a class="nav-link active fw-bold py-2" href="<?= base_url('/') ?>">
+                            <i class="bx bx-briefcase-alt-2 me-2 text-info fs-5 align-middle"></i> ติดตามขอไปราชการ
                         </a>
                     </li>
                 </ul>
@@ -806,37 +761,24 @@
             <div class="card glass-card mb-3 mb-md-4">
                 <div class="card-body p-3 p-sm-4">
                     <form action="<?= base_url('/') ?>" method="GET" class="row g-2 g-sm-3 align-items-end">
-                        <div class="col-12 col-md-6 col-lg-5">
+                        <input type="hidden" name="type" value="travel" />
+                        <div class="col-12 col-md-7 col-lg-7">
                             <label class="form-label text-dark small fw-bold">
-                                <i class="bx bx-search-alt me-1 text-primary"></i> ค้นหาเอกสาร
+                                <i class="bx bx-search-alt me-1 text-primary"></i> ค้นหาคำขอไปราชการ
                             </label>
                             <div class="input-group input-group-merge">
                                 <span class="input-group-text bg-white border-end-0"><i class="bx bx-search text-primary"></i></span>
-                                <input type="text" id="searchInput" name="search" class="form-control border-start-0 text-dark fw-medium" placeholder="พิมพ์เลขที่หนังสือ, เลขทะเบียน, หรือชื่อเรื่อง..." value="<?= esc($search) ?>" />
+                                <input type="text" id="searchInput" name="search" class="form-control border-start-0 text-dark fw-medium" placeholder="พิมพ์เลขที่คำขอ, ชื่อผู้ขอ, สถานที่ หรือชื่อเรื่อง..." value="<?= esc($search) ?>" />
                             </div>
                         </div>
                         <div class="col-6 col-md-3 col-lg-3">
-                            <label class="form-label text-dark small fw-bold">
-                                <i class="bx bx-folder me-1 text-primary"></i> ประเภทหนังสือ
-                            </label>
-                            <select name="type" id="typeSelect" class="form-select text-dark fw-medium" style="font-size: 0.85rem;">
-                                <option value="">-- ทุกประเภท --</option>
-                                <option value="in" <?= $currentType === 'in' ? 'selected' : '' ?>>หนังสือรับ (ภายนอก)</option>
-                                <option value="out" <?= $currentType === 'out' ? 'selected' : '' ?>>หนังสือส่ง (ภายนอก)</option>
-                                <option value="internal" <?= $currentType === 'internal' ? 'selected' : '' ?>>บันทึกข้อความ (ภายใน)</option>
-                                <option value="order" <?= $currentType === 'order' ? 'selected' : '' ?>>คำสั่งโรงเรียน</option>
-                                <option value="travel" <?= $currentType === 'travel' ? 'selected' : '' ?>>ขออนุมัติไปราชการ</option>
-                                <option value="circular" <?= $currentType === 'circular' ? 'selected' : '' ?>>หนังสือเวียน</option>
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-3 col-lg-2">
                             <label class="form-label text-dark small fw-bold">
                                 <i class="bx bx-flag me-1 text-primary"></i> สถานะเอกสาร
                             </label>
                             <select name="status" id="statusSelect" class="form-select text-dark fw-medium" style="font-size: 0.85rem;">
                                 <option value="">-- ทุกสถานะ --</option>
                                 <option value="routing" <?= $currentStatus === 'routing' ? 'selected' : '' ?>>อยู่ระหว่างดำเนินเรื่อง</option>
-                                <option value="completed" <?= $currentStatus === 'completed' ? 'selected' : '' ?>>เสร็จสิ้น/อนุมัติแล้ว</option>
+                                <option value="completed" <?= $currentStatus === 'completed' ? 'selected' : '' ?>>อนุมัติเรียบร้อยแล้ว</option>
                                 <option value="returned" <?= $currentStatus === 'returned' ? 'selected' : '' ?>>ส่งคืนแก้ไข</option>
                             </select>
                         </div>
@@ -950,38 +892,13 @@
                 </span>
             </div>
 
-            <!-- Nav Pills Tabs (Horizontal Touch Scroll on Mobile) -->
+            <!-- Nav Pills Tabs (เน้นเฉพาะระบบไปราชการ) -->
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2">
                 <div class="w-100 overflow-hidden">
                     <ul class="nav nav-pills flex-nowrap overflow-x-auto pb-1 gap-2 scrollbar-none" style="-webkit-overflow-scrolling: touch;">
                         <li class="nav-item flex-shrink-0">
-                            <a class="nav-link custom-nav-pill <?= empty($currentType) ? 'active' : '' ?>" href="<?= base_url('/') ?>">
-                                <i class="bx bx-grid-alt me-1"></i> ทั้งหมด
-                            </a>
-                        </li>
-                        <li class="nav-item flex-shrink-0">
-                            <a class="nav-link custom-nav-pill <?= $currentType === 'in' ? 'active' : '' ?>" href="<?= base_url('?type=in') ?>">
-                                <i class="bx bx-log-in-circle me-1"></i> หนังสือรับ
-                            </a>
-                        </li>
-                        <li class="nav-item flex-shrink-0">
-                            <a class="nav-link custom-nav-pill <?= $currentType === 'out' ? 'active' : '' ?>" href="<?= base_url('?type=out') ?>">
-                                <i class="bx bx-log-out-circle me-1"></i> หนังสือส่ง
-                            </a>
-                        </li>
-                        <li class="nav-item flex-shrink-0">
-                            <a class="nav-link custom-nav-pill <?= $currentType === 'internal' ? 'active' : '' ?>" href="<?= base_url('?type=internal') ?>">
-                                <i class="bx bx-message-detail me-1"></i> บันทึกข้อความ
-                            </a>
-                        </li>
-                        <li class="nav-item flex-shrink-0">
-                            <a class="nav-link custom-nav-pill <?= $currentType === 'order' ? 'active' : '' ?>" href="<?= base_url('?type=order') ?>">
-                                <i class="bx bx-award me-1"></i> คำสั่งโรงเรียน
-                            </a>
-                        </li>
-                        <li class="nav-item flex-shrink-0">
-                            <a class="nav-link custom-nav-pill <?= $currentType === 'travel' ? 'active' : '' ?>" href="<?= base_url('?type=travel') ?>">
-                                <i class="bx bx-briefcase-alt-2 me-1"></i> ขออนุมัติไปราชการ
+                            <a class="nav-link custom-nav-pill active" href="<?= base_url('/') ?>">
+                                <i class="bx bx-briefcase-alt-2 me-1"></i> รายการคำขออนุมัติไปราชการทั้งหมด
                             </a>
                         </li>
                     </ul>

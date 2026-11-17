@@ -35,162 +35,86 @@ class PublicController extends BaseController
     public function index()
     {
         $search = trim($this->request->getGet('search') ?? '');
-        $type   = $this->request->getGet('type');
+        $type   = 'travel'; // บังคับให้แสดงเฉพาะขอไปราชการเท่านั้นชั่วคราว
         $status = $this->request->getGet('status');
 
-        // สถิติภาพรวมสำหรับแสดง Dashboard ย่อย (ไม่นับสถานะร่างเอกสาร)
-        $totalDocsCount     = (new DocumentModel())->where('status !=', 'draft')->countAllResults();
-        $totalTravelCount   = (new TravelRequestModel())->countAllResults();
-        $totalCount         = $totalDocsCount + $totalTravelCount;
+        // สถิติภาพรวมสำหรับแสดง Dashboard ย่อย (นับเฉพาะระบบไปราชการตามนโยบายปัจจุบัน)
+        $totalCount     = (new TravelRequestModel())->countAllResults();
+        $routingCount   = (new TravelRequestModel())->where('status', 'pending')->countAllResults();
+        $completedCount = (new TravelRequestModel())->where('status', 'approved')->countAllResults();
+        $returnedCount  = (new TravelRequestModel())->where('status', 'returned')->countAllResults();
 
-        $routingDocsCount   = (new DocumentModel())->where('status', 'routing')->countAllResults();
-        $routingTravelCount = (new TravelRequestModel())->where('status', 'pending')->countAllResults();
-        $routingCount       = $routingDocsCount + $routingTravelCount;
-
-        $completedDocsCount   = (new DocumentModel())->where('status', 'completed')->countAllResults();
-        $completedTravelCount = (new TravelRequestModel())->where('status', 'approved')->countAllResults();
-        $completedCount       = $completedDocsCount + $completedTravelCount;
-
-        $returnedDocsCount   = (new DocumentModel())->where('status', 'returned')->countAllResults();
-        $returnedTravelCount = (new TravelRequestModel())->where('status', 'returned')->countAllResults();
-        $returnedCount       = $returnedDocsCount + $returnedTravelCount;
-
-        // 1. ดึงข้อมูลคำขอไปราชการ (ถ้าเป็นเมนู "ทั้งหมด" หรือเลือกประเภท "ไปราชการ")
-        $includeTravel = empty($type) || $type === 'travel';
+        // 1. ดึงข้อมูลคำขอไปราชการ
         $travelDocs = [];
-        if ($includeTravel) {
-            $travelQuery = (new TravelRequestModel())->select('travel_requests.*, users.prefix, users.first_name, users.last_name, departments.name as department_name')
-                                                     ->join('users', 'users.id = travel_requests.user_id', 'left')
-                                                     ->join('departments', 'departments.id = users.department_id', 'left');
+        $travelQuery = (new TravelRequestModel())->select('travel_requests.*, users.prefix, users.first_name, users.last_name, departments.name as department_name')
+                                                 ->join('users', 'users.id = travel_requests.user_id', 'left')
+                                                 ->join('departments', 'departments.id = users.department_id', 'left');
 
-            if (!empty($search)) {
-                $travelQuery->groupStart()
-                            ->like('travel_requests.doc_no', $search)
-                            ->orLike('travel_requests.title', $search)
-                            ->orLike('travel_requests.destination', $search)
-                            ->orLike('travel_requests.province', $search)
-                            ->orLike('users.first_name', $search)
-                            ->orLike('users.last_name', $search)
-                            ->groupEnd();
-            }
+        if (!empty($search)) {
+            $travelQuery->groupStart()
+                        ->like('travel_requests.doc_no', $search)
+                        ->orLike('travel_requests.title', $search)
+                        ->orLike('travel_requests.destination', $search)
+                        ->orLike('travel_requests.province', $search)
+                        ->orLike('users.first_name', $search)
+                        ->orLike('users.last_name', $search)
+                        ->groupEnd();
+        }
 
-            if (!empty($status)) {
-                $statusMap = ['routing' => 'pending', 'completed' => 'approved', 'returned' => 'returned'];
-                $mappedStatus = $statusMap[$status] ?? $status;
-                $travelQuery->where('travel_requests.status', $mappedStatus);
-            }
+        if (!empty($status)) {
+            $statusMap = ['routing' => 'pending', 'completed' => 'approved', 'returned' => 'returned'];
+            $mappedStatus = $statusMap[$status] ?? $status;
+            $travelQuery->where('travel_requests.status', $mappedStatus);
+        }
 
-            $travels = $travelQuery->orderBy('travel_requests.created_at', 'DESC')->findAll(100);
+        $travels = $travelQuery->orderBy('travel_requests.created_at', 'DESC')->findAll(100);
 
-            $stepNames = [
-                1 => '1. โรงเรียน (ตรวจเอกสาร)',
-                2 => '2. กองการศึกษา (ตรวจสอบ)',
-                3 => '3. กองการเจ้าหน้าที่ (ตรวจสอบคุณสมบัติ)',
-                4 => '4. สำนักปลัด (กลั่นกรอง)',
-                5 => '5. นายก อบจ. (รอลงนามอนุมัติ)'
+        $stepNames = [
+            1 => '1. โรงเรียน (ตรวจเอกสาร)',
+            2 => '2. กองการศึกษา (ตรวจสอบ)',
+            3 => '3. กองการเจ้าหน้าที่ (ตรวจสอบคุณสมบัติ)',
+            4 => '4. สำนักปลัด (กลั่นกรอง)',
+            5 => '5. นายก อบจ. (รอลงนามอนุมัติ)'
+        ];
+
+        foreach ($travels as $tr) {
+            $curStep = (int)$tr['current_step'];
+            $travelDocs[] = [
+                'id'              => $tr['id'],
+                'doc_type'        => 'travel',
+                'doc_no'          => $tr['doc_no'],
+                'internal_reg_no' => 'ไปราชการ',
+                'title'           => $tr['title'] . ' (ณ ' . $tr['destination'] . ' ' . $tr['province'] . ')',
+                'from_org'        => ($tr['prefix'] ?? '') . $tr['first_name'] . ' ' . $tr['last_name'] . ' (' . ($tr['department_name'] ?? 'รร.') . ')',
+                'to_org'          => $this->getTravelDestination($tr),
+                'doc_date'        => $tr['start_date'],
+                'urgency'         => 'normal',
+                'status'          => ($tr['status'] === 'approved') ? 'completed' : (($tr['status'] === 'returned') ? 'returned' : 'routing'),
+                'current_step'    => $curStep,
+                'total_steps'     => 5,
+                'is_travel'       => true,
+                'created_at'      => $tr['created_at'],
+                'current_handler' => [
+                    'position_name' => $stepNames[$curStep] ?? 'กำลังพิจารณา',
+                    'prefix'        => '',
+                    'first_name'    => 'หน่วยงานขั้นตอนที่ ' . $curStep,
+                    'last_name'     => ''
+                ]
             ];
-
-            foreach ($travels as $tr) {
-                $curStep = (int)$tr['current_step'];
-                $travelDocs[] = [
-                    'id'              => $tr['id'],
-                    'doc_type'        => 'travel',
-                    'doc_no'          => $tr['doc_no'],
-                    'internal_reg_no' => 'ไปราชการ',
-                    'title'           => $tr['title'] . ' (ณ ' . $tr['destination'] . ' ' . $tr['province'] . ')',
-                    'from_org'        => ($tr['prefix'] ?? '') . $tr['first_name'] . ' ' . $tr['last_name'] . ' (' . ($tr['department_name'] ?? 'รร.') . ')',
-                    'to_org'          => $this->getTravelDestination($tr),
-                    'doc_date'        => $tr['start_date'],
-                    'urgency'         => 'normal',
-                    'status'          => ($tr['status'] === 'approved') ? 'completed' : (($tr['status'] === 'returned') ? 'returned' : 'routing'),
-                    'current_step'    => $curStep,
-                    'total_steps'     => 5,
-                    'is_travel'       => true,
-                    'created_at'      => $tr['created_at'],
-                    'current_handler' => [
-                        'position_name' => $stepNames[$curStep] ?? 'กำลังพิจารณา',
-                        'prefix'        => '',
-                        'first_name'    => 'หน่วยงานขั้นตอนที่ ' . $curStep,
-                        'last_name'     => ''
-                    ]
-                ];
-            }
         }
 
-        // 2. ดึงข้อมูลหนังสือราชการทั่วไป (ถ้าเป็นเมนู "ทั้งหมด" หรือเลือกประเภทเอกสารที่ไม่ใช่ "ไปราชการ")
-        $includeRegularDocs = empty($type) || $type !== 'travel';
-        $regularDocs = [];
-        if ($includeRegularDocs) {
-            $docQuery = (new DocumentModel())->select('documents.*, users.prefix, users.first_name, users.last_name, departments.name as department_name')
-                                             ->join('users', 'users.id = documents.created_by', 'left')
-                                             ->join('departments', 'departments.id = users.department_id', 'left')
-                                             ->where('documents.status !=', 'draft');
-
-            // กรองคำค้นหา
-            if (!empty($search)) {
-                $docQuery->groupStart()
-                         ->like('documents.doc_no', $search)
-                         ->orLike('documents.internal_reg_no', $search)
-                         ->orLike('documents.title', $search)
-                         ->orLike('documents.from_org', $search)
-                         ->orLike('documents.to_org', $search)
-                         ->groupEnd();
-            }
-
-            // กรองประเภทเอกสาร (กรณีระบุประเภทเจาะจงที่ไม่ใช่ travel)
-            if (!empty($type)) {
-                $docQuery->where('documents.doc_type', $type);
-            }
-
-            // กรองสถานะเอกสาร
-            if (!empty($status)) {
-                if ($status === 'draft') {
-                    $docQuery->where('1 = 0');
-                } else {
-                    $docQuery->where('documents.status', $status);
-                }
-            }
-
-            $docs = $docQuery->orderBy('documents.created_at', 'DESC')->findAll(100);
-
-            // ดึงข้อมูล current handler สำหรับแต่ละเอกสาร
-            foreach ($docs as $doc) {
-                $doc['is_travel'] = false;
-                // หาจำนวนขั้นตอนทั้งหมด
-                $routes = $this->routeModel->where('document_id', $doc['id'])->orderBy('step_order', 'ASC')->findAll();
-                $doc['total_steps'] = count($routes);
-
-                // หาผู้รับผิดชอบขั้นตอนปัจจุบัน
-                $currentRoute = $this->routeModel->select('document_routes.*, users.prefix, users.first_name, users.last_name, positions.name as position_name')
-                                                 ->join('users', 'users.id = document_routes.user_id', 'left')
-                                                 ->join('positions', 'positions.id = users.position_id', 'left')
-                                                 ->where('document_routes.document_id', $doc['id'])
-                                                 ->where('document_routes.step_order', $doc['current_step'])
-                                                 ->first();
-
-                $doc['current_handler'] = $currentRoute ?: null;
-                $regularDocs[] = $doc;
-            }
-        }
-
-        // 3. รวมและจัดเรียงตามวันที่สร้างล่าสุด (DESC)
-        $documents = array_merge($regularDocs, $travelDocs);
-        if (empty($type)) {
-            usort($documents, function ($a, $b) {
-                return strcmp($b['created_at'] ?? '', $a['created_at'] ?? '');
-            });
-        }
+        $documents = $travelDocs;
 
         return view('public/index', [
             'documents'      => $documents,
             'search'         => $search,
-            'currentType'    => $type,
+            'currentType'    => 'travel',
             'currentStatus'  => $status,
             'totalCount'     => $totalCount,
             'routingCount'   => $routingCount,
             'completedCount' => $completedCount,
             'returnedCount'  => $returnedCount,
-            'isLoggedIn'     => session()->get('logged_in') ?? false,
+            'isLoggedIn'     => (bool) session()->get('logged_in'),
             'userFullName'   => session()->get('full_name') ?? '',
             'userRole'       => session()->get('position_name') ?? '',
         ]);

@@ -168,8 +168,8 @@
             background: linear-gradient(72.47deg, #696cff 22.16%, rgba(105, 108, 255, 0.85) 76.47%) !important;
             color: #ffffff !important;
             font-weight: 600 !important;
-            box-shadow: 0 2px 8px 0 rgba(105, 108, 255, 0.45) !important;
-            border-radius: 0.375rem !important;
+            box-shadow: 0 4px 12px 0 rgba(105, 108, 255, 0.35) !important;
+            border-radius: 0.5rem !important;
         }
         .bg-menu-theme .menu-inner > .menu-item.active > .menu-link i,
         .bg-menu-theme .menu-inner > .menu-item.active > .menu-link div,
@@ -178,6 +178,48 @@
         .bg-menu-theme .menu-inner > .menu-item.active > .menu-link i.text-success,
         .bg-menu-theme .menu-inner > .menu-item.active > .menu-link i.text-info {
             color: #ffffff !important;
+        }
+
+        /* -------------------------------------------------------------
+           UI/UX Master Sidebar Polishing (Balanced Proportions & Contrast)
+        ------------------------------------------------------------- */
+        .layout-menu.bg-menu-theme {
+            background: #ffffff !important;
+            border-right: 1px solid rgba(226, 232, 240, 0.8) !important;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
+        }
+        .layout-menu .menu-inner {
+            padding: 0.5rem 0.85rem !important;
+        }
+        .layout-menu .menu-item {
+            margin-bottom: 0.25rem !important;
+        }
+        .layout-menu .menu-link {
+            border-radius: 0.5rem !important;
+            padding: 0.65rem 0.95rem !important;
+            font-size: 0.925rem !important;
+            font-weight: 500 !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+        .layout-menu .menu-link:hover {
+            background-color: #f8fafc !important;
+            transform: translateX(3px);
+        }
+        .layout-menu .menu-icon {
+            font-size: 1.3rem !important;
+            margin-right: 0.75rem !important;
+        }
+        .layout-menu .menu-header {
+            margin-top: 1rem !important;
+            margin-bottom: 0.4rem !important;
+            padding-left: 0.95rem !important;
+            padding-right: 0.95rem !important;
+        }
+        .layout-menu .menu-header-text {
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.05em !important;
+            color: #64748b !important;
         }
 
         /* High Contrast System for Badges & Labels (Tri-Master Color Contrast Rule) */
@@ -462,7 +504,7 @@
                     <?php if ($userRole === 'executive'): ?>
                     <!-- ==========================================
                          เมนูเฉพาะฝ่ายบริหาร (Executive Focused Menu)
-                         เน้นเฉพาะ: 1. เกษียณหนังสือ  2. คลังเอกสารทั้งหมด
+                         เน้น: แดชบอร์ด, แฟ้มลงนาม/เกษียน, ทะเบียนไปราชการ
                          ========================================== -->
                     <!-- แดชบอร์ดภาพรวมผู้บริหาร -->
                     <li class="menu-item <?= $isActiveMenu('dashboard', ['', 'dashboard']) ?>">
@@ -496,39 +538,9 @@
                         </a>
                     </li>
 
-                    <!-- หมวดที่ 2: คลังเอกสารโรงเรียนทั้งหมด -->
+                    <!-- หมวดที่ 2: งานไปราชการ (สำหรับผู้บริหาร) -->
                     <li class="menu-header small text-uppercase">
-                        <span class="menu-header-text">คลังเอกสารโรงเรียนทั้งหมด</span>
-                    </li>
-                    <li class="menu-item <?= $isActiveMenu('center', ['center', 'center/*']) ?>">
-                        <a href="<?= base_url('admin/center') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-search-alt text-info"></i>
-                            <div>ศูนย์กลางค้นหาเอกสาร</div>
-                        </a>
-                    </li>
-                    <li class="menu-item <?= ($currentUri === 'documents' || (str_starts_with($currentUri, 'documents/') && !in_array($currentUri, ['documents/inbox', 'documents/signed']) && !str_starts_with($currentUri, 'documents/inbox/') && !str_starts_with($currentUri, 'documents/signed/'))) ? 'active' : '' ?>">
-                        <a href="<?= base_url('admin/documents') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-mail-send text-primary"></i>
-                            <div>ทะเบียนหนังสือรับ - ส่ง</div>
-                        </a>
-                    </li>
-                    <li class="menu-item <?= (str_starts_with($currentUri, 'memos') && !str_starts_with($currentUri, 'memos/create')) ? 'active' : '' ?>">
-                        <a href="<?= base_url('admin/memos') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-notepad text-primary"></i>
-                            <div>ทะเบียนบันทึกข้อความ</div>
-                        </a>
-                    </li>
-                    <li class="menu-item <?= (str_starts_with($currentUri, 'orders') && !str_starts_with($currentUri, 'orders/create')) ? 'active' : '' ?>">
-                        <a href="<?= base_url('admin/orders') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-award text-warning"></i>
-                            <div>ทะเบียนคำสั่งโรงเรียน</div>
-                        </a>
-                    </li>
-                    <li class="menu-item <?= ($currentUri === 'approvals' || (str_starts_with($currentUri, 'approvals/') && !str_starts_with($currentUri, 'approvals/create'))) ? 'active' : '' ?>">
-                        <a href="<?= base_url('admin/approvals') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-check-square text-success"></i>
-                            <div>ทะเบียนคำขออนุมัติ</div>
-                        </a>
+                        <span class="menu-header-text">งานไปราชการ</span>
                     </li>
                     <li class="menu-item <?= ($currentUri === 'travel' || (str_starts_with($currentUri, 'travel/') && !str_starts_with($currentUri, 'travel/create'))) ? 'active' : '' ?>">
                         <a href="<?= base_url('admin/travel') ?>" class="menu-link">
@@ -536,10 +548,16 @@
                             <div>ทะเบียนไปราชการ</div>
                         </a>
                     </li>
+                    <li class="menu-item <?= str_starts_with($currentUri, 'travel-reports') ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel-reports') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bxs-report text-warning"></i>
+                            <div>รายงานผลไปราชการ</div>
+                        </a>
+                    </li>
 
                     <!-- หมวดที่ 3: ส่วนตัว -->
                     <li class="menu-header small text-uppercase">
-                        <span class="menu-header-text">ส่วนตัว</span>
+                        <span class="menu-header-text">ส่วนตัว & บัญชี</span>
                     </li>
                     <li class="menu-item <?= $isActiveMenu('profile', ['profile', 'profile/*']) ?>">
                         <a href="<?= base_url('admin/profile') ?>" class="menu-link">
@@ -548,22 +566,46 @@
                         </a>
                     </li>
                     <?php else: ?>
-                    <!-- Dashboard -->
-                    <li class="menu-item <?= $isActiveMenu('dashboard', ['', 'dashboard']) ?>">
-                        <a href="<?= base_url('admin/dashboard') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-home-circle text-primary"></i>
-                            <div>แดชบอร์ดภาพรวม</div>
-                        </a>
+                    <?php 
+                    $isTeacherRole    = !in_array($userRole, ['super_admin', 'admin', 'saraban', 'executive'], true);
+                    $isAdminOrSaraban = in_array($userRole, ['super_admin', 'admin', 'saraban'], true);
+                    ?>
+
+                    <?php if ($isTeacherRole): ?>
+                    <!-- ==========================================
+                         เมนูสำหรับคุณครูและบุคลากร (เฉพาะระบบไปราชการ)
+                         ========================================== -->
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">ระบบงานไปราชการ</span>
                     </li>
 
-                    <li class="menu-item <?= $isActiveMenu('center', ['center', 'center/*']) ?>">
-                        <a href="<?= base_url('admin/center') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-search-alt text-info"></i>
-                            <div>ศูนย์กลางค้นหาเอกสาร</div>
+                    <li class="menu-item <?= ($currentUri === 'travel/create') ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel/create') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-plus-circle text-primary"></i>
+                            <div>ยื่นขอไปราชการ</div>
                         </a>
                     </li>
+                    <li class="menu-item <?= ($currentUri === 'travel/my') ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel/my') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-list-check text-info"></i>
+                            <div>ติดตามสถานะของฉัน</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= ($currentUri === 'travel') ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-briefcase-alt-2 text-success"></i>
+                            <div>ทะเบียนไปราชการ</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= str_starts_with($currentUri, 'travel-reports') ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel-reports') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bxs-report text-warning"></i>
+                            <div>รายงานผลไปราชการ</div>
+                        </a>
+                    </li>
+                    <?php endif; ?>
 
-                    <?php if (!in_array($userRole, ['admin', 'saraban', 'super_admin'], true)): ?>
+                    <?php if (false && !in_array($userRole, ['admin', 'saraban', 'super_admin'], true)): // ปิดชั่วคราว: งานของฉันและการติดตาม ?>
                     <!-- ==========================================
                          งานของฉันและการติดตาม (Personal Workspace)
                          ========================================== -->
@@ -597,6 +639,7 @@
                     </li>
                     <?php endif; ?>
 
+                    <?php if (false): // ปิดชั่วคราว: ซ่อนระบบประเภทหนังสือราชการและคำขออนุมัติ (ให้เหลือเฉพาะระบบไปราชการ) ?>
                     <!-- ==========================================
                          ประเภทหนังสือราชการ (6 ชนิดตามระเบียบงานสารบรรณ)
                          ========================================== -->
@@ -771,42 +814,54 @@
                             <?php endif; ?>
                         </ul>
                     </li>
+                    <?php endif; // สิ้นสุดการปิดชั่วคราว: ประเภทหนังสือราชการ และ คำขออนุมัติ ?>
 
-                    <!-- งานไปราชการและรายงานผล -->
-                    <li class="menu-item <?= str_starts_with($currentUri, 'travel') || str_starts_with($currentUri, 'travel-reports') ? 'open' : '' ?>">
-                        <a href="javascript:void(0)" class="menu-link menu-toggle">
-                            <i class="menu-icon tf-icons bx bx-briefcase-alt-2 text-primary"></i>
-                            <div>ไปราชการและรายงานผล</div>
+                    <?php if ($isAdminOrSaraban): ?>
+                    <!-- ==========================================
+                         เมนูเจ้าหน้าที่งานสารบรรณ & แอดมิน (Admin & Registry)
+                         ========================================== -->
+                    <!-- แดชบอร์ดภาพรวม -->
+                    <li class="menu-item <?= $isActiveMenu('dashboard', ['', 'dashboard']) ?>">
+                        <a href="<?= base_url('admin/dashboard') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-home-circle text-primary"></i>
+                            <div>แดชบอร์ดภาพรวม</div>
                         </a>
-                        <ul class="menu-sub">
-                            <li class="menu-item <?= $currentUri === 'travel/create' ? 'active' : '' ?>">
-                                <a href="<?= base_url('admin/travel/create') ?>" class="menu-link">
-                                    <div>ยื่นขอไปราชการ</div>
-                                </a>
-                            </li>
-                            <li class="menu-item <?= $currentUri === 'travel/my' ? 'active' : '' ?>">
-                                <a href="<?= base_url('admin/travel/my') ?>" class="menu-link">
-                                    <div>ติดตามสถานะของฉัน</div>
-                                </a>
-                            </li>
-                            <li class="menu-item <?= $currentUri === 'travel' ? 'active' : '' ?>">
-                                <a href="<?= base_url('admin/travel') ?>" class="menu-link">
-                                    <div>ทะเบียนไปราชการ</div>
-                                </a>
-                            </li>
-                            <li class="menu-item <?= str_starts_with($currentUri, 'travel-reports') ? 'active' : '' ?>">
-                                <a href="<?= base_url('admin/travel-reports') ?>" class="menu-link">
-                                    <div>รายงานผลไปราชการ</div>
-                                </a>
-                            </li>
-                        </ul>
                     </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">งานไปราชการและรายงานผล</span>
+                    </li>
+                    <li class="menu-item <?= ($currentUri === 'travel/create') ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel/create') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-plus-circle text-primary"></i>
+                            <div>ยื่นขอไปราชการ</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= ($currentUri === 'travel/my') ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel/my') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-list-check text-info"></i>
+                            <div>ติดตามสถานะของฉัน</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= ($currentUri === 'travel') ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-briefcase-alt-2 text-success"></i>
+                            <div>ทะเบียนไปราชการทั้งหมด</div>
+                        </a>
+                    </li>
+                    <li class="menu-item <?= str_starts_with($currentUri, 'travel-reports') ? 'active' : '' ?>">
+                        <a href="<?= base_url('admin/travel-reports') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bxs-report text-warning"></i>
+                            <div>รายงานผลไปราชการ</div>
+                        </a>
+                    </li>
+                    <?php endif; ?>
 
                     <!-- ==========================================
                          ส่วนตัว & ตั้งค่าระบบ
                          ========================================== -->
                     <li class="menu-header small text-uppercase">
-                        <span class="menu-header-text">ส่วนตัว & ผู้ดูแลระบบ</span>
+                        <span class="menu-header-text"><?= $isTeacherRole ? 'การตั้งค่า & บัญชี' : 'ส่วนตัว & ผู้ดูแลระบบ' ?></span>
                     </li>
 
                     <!-- ตั้งค่าลายเซ็น -->

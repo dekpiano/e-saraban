@@ -1342,15 +1342,15 @@
                                 </div>
 
                                 <?php if (empty($travel['file_path'])): ?>
-                                    <!-- แจ้งเตือนต้องแนบไฟล์คำสั่งก่อนไปขั้นที่ 3 -->
-                                    <div class="alert alert-danger py-2 px-3 small mb-3 shadow-sm border border-danger d-flex align-items-center" style="background-color: #fee2e2; color: #991b1b;">
-                                        <i class="bx bxs-error-circle fs-4 me-2 flex-shrink-0 text-danger"></i>
+                                    <!-- คำแนะนำการแนบไฟล์คำสั่ง (ไม่บังคับ สามารถแนบหรือไม่แนบก็ได้) -->
+                                    <div class="alert alert-secondary py-2 px-3 small mb-3 shadow-sm border d-flex align-items-center" style="background-color: #f8fafc; color: #475569;">
+                                        <i class="bx bx-info-circle fs-4 me-2 flex-shrink-0 text-primary"></i>
                                         <div class="flex-grow-1">
-                                            <strong class="d-block text-danger">ยังไม่ได้แนบไฟล์เอกสารคำสั่ง (PDF):</strong>
-                                            <span>ในขั้นตอนที่ 2 ต้องอัปโหลดไฟล์คำสั่งก่อน จึงจะสามารถกดบันทึกส่งต่อให้กองการศึกษา (ขั้นที่ 3) ได้</span>
-                                            <div class="mt-2">
-                                                <button type="button" class="btn btn-xs btn-danger fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#uploadTravelModal">
-                                                    <i class="bx bx-upload me-1"></i> อัปโหลดไฟล์คำสั่ง (PDF) ทันที
+                                            <span class="d-block fw-semibold text-dark">ยังไม่มีไฟล์เอกสารคำสั่ง (PDF):</span>
+                                            <span>ท่านสามารถบันทึกขั้นตอนต่อได้ทันที หรืออัปโหลดไฟล์คำสั่งแนบเพิ่มเติมได้ตลอดเวลา</span>
+                                            <div class="mt-1">
+                                                <button type="button" class="btn btn-xs btn-outline-primary fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#uploadTravelModal">
+                                                    <i class="bx bx-upload me-1"></i> อัปโหลดไฟล์คำสั่ง (PDF)
                                                 </button>
                                             </div>
                                         </div>
@@ -1657,19 +1657,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const chosenApproval = approvalInput ? approvalInput.value : '';
             const chosenStatus = statusSelect ? statusSelect.value : '';
 
-            // ถ้าก้าวข้ามขั้นตอนที่ 2 หรืออนุมัติ แต่ยังไม่มีไฟล์เอกสารแนบ
-            if (!hasUploadedTravelFile && (chosenStep > 2 || chosenApproval === 'clerk' || chosenApproval === 'president' || chosenStatus === 'approved')) {
-                e.preventDefault();
-                AppAlert.warning('ในขั้นตอนที่ 2 (โรงเรียนจัดทำเรื่อง) เจ้าหน้าที่ธุรการจำเป็นต้องอัปโหลดไฟล์คำสั่ง / หนังสือเชิญ (PDF) ให้เรียบร้อยก่อนส่งเรื่องต่อไปยังกองการศึกษา (ขั้นที่ 3)', 'ไม่สามารถบันทึกไปขั้นตอนต่อไปได้');
-                
-                // เปิด modal อัปโหลดไฟล์ให้อัตโนมัติ
-                const uploadModalEl = document.getElementById('uploadTravelModal');
-                if (uploadModalEl && typeof bootstrap !== 'undefined') {
-                    const uploadModal = new bootstrap.Modal(uploadModalEl);
-                    uploadModal.show();
-                }
-                return false;
-            }
+            // การแนบไฟล์คำสั่งเป็นทางเลือก (Optional) แนบหรือไม่แนบก็ได้ สามารถบันทึกก้าวข้ามขั้นตอนได้ตามปกติ
         });
     }
 

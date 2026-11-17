@@ -181,7 +181,7 @@ $totalAlerts = $isExecutive
                         </div>
                     <?php elseif ($isTeacher): ?>
                         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill bg-white text-dark small fw-bold shadow-sm">
-                            <i class="bx bxs-graduation text-warning fs-5"></i> ระบบงานสารบรรณสำหรับครูและบุคลากร (Teacher & Staff Portal)
+                            <i class="bx bx-briefcase-alt-2 text-primary fs-5"></i> ระบบงานไปราชการและรายงานผลสำหรับครูและบุคลากร
                         </div>
                         <h2 class="text-white fw-bold mb-2">
                             สวัสดีคุณครู <?= esc(session()->get('full_name') ?? 'คุณครู') ?> 🍎
@@ -192,37 +192,19 @@ $totalAlerts = $isExecutive
                             สังกัด: <span class="badge bg-white text-dark fw-bold ms-1 px-2.5 py-1 shadow-sm"><?= esc(session()->get('department_name') ?? 'โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์') ?></span>
                         </p>
 
-                        <!-- Quick Action Buttons for Teacher Role ONLY -->
+                        <!-- Quick Action Buttons for Teacher Role ONLY (เฉพาะงานไปราชการ) -->
                         <div class="d-flex flex-wrap gap-2">
-                            <a href="<?= base_url('admin/memos/create') ?>" class="btn btn-warning text-dark fw-bold px-3 py-2 shadow-sm">
-                                <i class="bx bx-plus-circle me-1"></i> เขียนบันทึกข้อความใหม่
-                            </a>
-                            <a href="<?= base_url('admin/orders/create') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm">
-                                <i class="bx bx-award me-1"></i> ร่างคำสั่งโรงเรียน
-                            </a>
-                            <a href="<?= base_url('admin/travel/create') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm">
-                                <i class="bx bx-briefcase-alt-2 me-1"></i> ยื่นขอไปราชการ
-                            </a>
-                            <a href="<?= base_url('admin/approvals/create') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm">
-                                <i class="bx bx-check-square me-1"></i> ยื่นคำขออนุมัติ
-                            </a>
-                            <a href="<?= base_url('admin/documents/inbox') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm d-flex align-items-center gap-1">
-                                <i class="bx bx-edit-alt fs-5"></i> แฟ้มรอฉันเกษียณ / ลงนาม
-                                <?php if ($pendingCount > 0): ?>
-                                    <span class="badge bg-danger text-white rounded-pill ms-1 px-2 py-0.5"><?= $pendingCount ?></span>
-                                <?php endif; ?>
-                            </a>
-                            <a href="<?= base_url('admin/memos') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm">
-                                <i class="bx bx-notepad me-1"></i> บันทึกข้อความของฉัน
-                            </a>
-                            <a href="<?= base_url('admin/orders') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm">
-                                <i class="bx bx-file me-1"></i> ทะเบียนคำสั่งโรงเรียน
+                            <a href="<?= base_url('admin/travel/create') ?>" class="btn btn-warning text-dark fw-bold px-3 py-2 shadow-sm">
+                                <i class="bx bx-plus-circle me-1"></i> ยื่นขอไปราชการ
                             </a>
                             <a href="<?= base_url('admin/travel/my') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm">
-                                <i class="bx bx-list-check me-1"></i> ติดตามงานไปราชการ
+                                <i class="bx bx-list-check me-1"></i> ติดตามงานไปราชการของฉัน
                             </a>
-                            <a href="<?= base_url('admin/center') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm">
-                                <i class="bx bx-search-alt me-1"></i> ค้นหาเอกสาร
+                            <a href="<?= base_url('admin/travel') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm">
+                                <i class="bx bx-briefcase-alt-2 me-1"></i> ทะเบียนไปราชการทั้งหมด
+                            </a>
+                            <a href="<?= base_url('admin/travel-reports') ?>" class="btn btn-light text-primary fw-bold px-3 py-2 shadow-sm">
+                                <i class="bx bxs-report me-1"></i> เขียนรายงานผลไปราชการ
                             </a>
                         </div>
                     <?php else: ?>
@@ -395,7 +377,7 @@ $totalAlerts = $isExecutive
         <?php endif; ?>
 
         <!-- แจ้งเตือน 5: คำสั่งโรงเรียนฉบับร่าง -->
-        <?php if (($isAdmin || $isTeacher) && $draftOrderCount > 0): ?>
+        <?php if ($isAdmin && $draftOrderCount > 0): ?>
         <div class="col-xl-4 col-md-6">
             <div class="card alert-action-card border-secondary shadow-sm bg-white h-100" style="border-left: 5px solid #8592a3 !important;">
                 <div class="card-body p-3.5">
@@ -455,59 +437,11 @@ $totalAlerts = $isExecutive
 <!-- 3. Metrics Section                         -->
 <!-- ========================================== -->
 <?php if ($isTeacher): ?>
-<!-- สถิติงานสำหรับครูและบุคลากร (Teacher Focused Metrics) -->
+<!-- สถิติงานสำหรับครูและบุคลากร (มุ่งเน้นเฉพาะระบบไปราชการ) -->
 <div class="row g-3 mb-4">
-    <!-- 1. บันทึกข้อความของฉัน -->
-    <div class="col-xl-3 col-sm-6">
-        <div class="card stat-card-saraban h-100">
-            <div class="card-body p-3.5">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="avatar avatar-md bg-label-primary rounded p-1">
-                        <i class="bx bx-notepad fs-3 text-primary"></i>
-                    </div>
-                    <span class="badge bg-primary text-white fw-bold">ของฉัน</span>
-                </div>
-                <div class="text-secondary small fw-semibold">บันทึกข้อความที่ฉันสร้าง</div>
-                <div class="d-flex align-items-baseline gap-2 my-1">
-                    <h2 class="fw-bold mb-0 text-dark"><?= number_format($myDocsCount ?? count($myMemos ?? [])) ?></h2>
-                    <span class="text-muted small">ฉบับ</span>
-                </div>
-                <div class="border-top pt-2 mt-2">
-                    <a href="<?= base_url('admin/memos') ?>" class="small fw-bold text-primary d-inline-flex align-items-center gap-1 text-decoration-none">
-                        เปิดดูบันทึกข้อความของฉัน <i class="bx bx-chevron-right fs-5"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2. รอฉันเกษียณ / ลงนาม -->
-    <div class="col-xl-3 col-sm-6">
-        <div class="card stat-card-saraban h-100">
-            <div class="card-body p-3.5">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="avatar avatar-md bg-label-warning rounded p-1">
-                        <i class="bx bx-edit fs-3 text-warning"></i>
-                    </div>
-                    <span class="badge bg-warning text-dark fw-bold">รอลงนาม</span>
-                </div>
-                <div class="text-secondary small fw-semibold">แฟ้มรอฉันเกษียณ / ลงนาม</div>
-                <div class="d-flex align-items-baseline gap-2 my-1">
-                    <h2 class="fw-bold mb-0 text-dark"><?= number_format($pendingCount) ?></h2>
-                    <span class="text-muted small">ฉบับ</span>
-                </div>
-                <div class="border-top pt-2 mt-2">
-                    <a href="<?= base_url('admin/documents/inbox') ?>" class="small fw-bold text-warning d-inline-flex align-items-center gap-1 text-decoration-none">
-                        เข้าสู่แฟ้มลงนาม <i class="bx bx-chevron-right fs-5"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. คำขอไปราชการของฉัน -->
-    <div class="col-xl-3 col-sm-6">
-        <div class="card stat-card-saraban h-100">
+    <!-- 1. คำขอไปราชการของฉัน -->
+    <div class="col-xl-4 col-sm-6">
+        <div class="card stat-card-saraban h-100 shadow-sm border-0">
             <div class="card-body p-3.5">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <div class="avatar avatar-md bg-label-info rounded p-1">
@@ -529,24 +463,46 @@ $totalAlerts = $isExecutive
         </div>
     </div>
 
-    <!-- 4. คำสั่งโรงเรียน -->
-    <div class="col-xl-3 col-sm-6">
-        <div class="card stat-card-saraban h-100">
+    <!-- 2. ยื่นขอไปราชการใหม่ -->
+    <div class="col-xl-4 col-sm-6">
+        <div class="card stat-card-saraban h-100 shadow-sm border-0">
             <div class="card-body p-3.5">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="avatar avatar-md bg-label-success rounded p-1">
-                        <i class="bx bx-award fs-3 text-success"></i>
+                    <div class="avatar avatar-md bg-label-primary rounded p-1">
+                        <i class="bx bx-plus-circle fs-3 text-primary"></i>
                     </div>
-                    <span class="badge bg-success text-white fw-bold">คำสั่ง รร.</span>
+                    <span class="badge bg-primary text-white fw-bold">สร้างใหม่</span>
                 </div>
-                <div class="text-secondary small fw-semibold">ทะเบียนคำสั่งโรงเรียน</div>
+                <div class="text-secondary small fw-semibold">ยื่นขอไปราชการ</div>
                 <div class="d-flex align-items-baseline gap-2 my-1">
-                    <h2 class="fw-bold mb-0 text-dark"><?= number_format($orderCount) ?></h2>
-                    <span class="text-muted small">ฉบับ</span>
+                    <h5 class="fw-bold mb-0 text-primary">ขออนุมัติเดินทาง</h5>
                 </div>
                 <div class="border-top pt-2 mt-2">
-                    <a href="<?= base_url('admin/orders') ?>" class="small fw-bold text-success d-inline-flex align-items-center gap-1 text-decoration-none">
-                        เปิดอ่านคำสั่งโรงเรียน <i class="bx bx-chevron-right fs-5"></i>
+                    <a href="<?= base_url('admin/travel/create') ?>" class="small fw-bold text-primary d-inline-flex align-items-center gap-1 text-decoration-none">
+                        เขียนคำขอใหม่ทันที <i class="bx bx-chevron-right fs-5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. รายงานผลไปราชการ -->
+    <div class="col-xl-4 col-sm-6">
+        <div class="card stat-card-saraban h-100 shadow-sm border-0">
+            <div class="card-body p-3.5">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="avatar avatar-md bg-label-warning rounded p-1">
+                        <i class="bx bxs-report fs-3 text-warning"></i>
+                    </div>
+                    <span class="badge bg-warning text-dark fw-bold">รายงานผล</span>
+                </div>
+                <div class="text-secondary small fw-semibold">รายงานผลการปฏิบัติงาน</div>
+                <div class="d-flex align-items-baseline gap-2 my-1">
+                    <h5 class="fw-bold mb-0 text-dark">บันทึกรายงานผล</h5>
+                </div>
+                <div class="border-top pt-2 mt-2">
+                    <a href="<?= base_url('admin/travel-reports') ?>" class="small fw-bold text-warning d-inline-flex align-items-center gap-1 text-decoration-none">
+                        ส่งรายงานผลไปราชการ <i class="bx bx-chevron-right fs-5"></i>
                     </a>
                 </div>
             </div>
@@ -679,22 +635,10 @@ $totalAlerts = $isExecutive
             </li>
             <?php endif; ?>
 
-            <?php if ($isTeacher): ?>
-            <!-- แท็บสำหรับครู: บันทึกข้อความของฉัน -->
-            <li class="nav-item" role="presentation">
-                <button class="nav-link <?= ($pendingCount === 0) ? 'active' : '' ?> d-flex align-items-center gap-2" id="my-memos-tab" data-bs-toggle="tab" data-bs-target="#tab-my-memos" type="button" role="tab">
-                    <i class="bx bx-notepad text-primary fs-5"></i>
-                    <span>บันทึกข้อความของฉัน</span>
-                    <?php if (!empty($myMemos)): ?>
-                        <span class="badge bg-primary text-white rounded-pill px-2 fw-bold"><?= count($myMemos) ?></span>
-                    <?php endif; ?>
-                </button>
-            </li>
-            <?php endif; ?>
-
+            <?php if (!$isTeacher): ?>
             <!-- แท็บ 2: รอคุณเกษียน/ลงนาม -->
             <li class="nav-item" role="presentation">
-                <button class="nav-link <?= ($isExecutive || ($isTeacher && $pendingCount > 0) || (!$isTeacher && $pendingSarabanCount === 0 && $pendingCount > 0)) ? 'active' : '' ?> d-flex align-items-center gap-2" id="pending-tab" data-bs-toggle="tab" data-bs-target="#tab-pending" type="button" role="tab">
+                <button class="nav-link <?= ($isExecutive || (!$isTeacher && $pendingSarabanCount === 0 && $pendingCount > 0)) ? 'active' : '' ?> d-flex align-items-center gap-2" id="pending-tab" data-bs-toggle="tab" data-bs-target="#tab-pending" type="button" role="tab">
                     <i class="bx bx-pencil text-warning fs-5"></i>
                     <span>รอคุณเกษียน/ลงนาม</span>
                     <?php if ($pendingCount > 0): ?>
@@ -718,10 +662,11 @@ $totalAlerts = $isExecutive
                     <span>คำสั่งโรงเรียนล่าสุด</span>
                 </button>
             </li>
+            <?php endif; ?>
 
             <!-- แท็บ 5: คำขอไปราชการ -->
             <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center gap-2" id="travel-tab" data-bs-toggle="tab" data-bs-target="#tab-travel" type="button" role="tab">
+                <button class="nav-link <?= $isTeacher ? 'active' : '' ?> d-flex align-items-center gap-2" id="travel-tab" data-bs-toggle="tab" data-bs-target="#tab-travel" type="button" role="tab">
                     <i class="bx bx-briefcase-alt-2 text-info fs-5"></i>
                     <span><?= $isTeacher ? 'งานไปราชการของฉัน' : 'คำขอไปราชการล่าสุด' ?></span>
                     <?php if ($isTeacher && !empty($myTravel)): ?>
@@ -1094,7 +1039,7 @@ $totalAlerts = $isExecutive
         </div>
 
         <!-- Tab 5: คำขอไปราชการ -->
-        <div class="tab-pane fade" id="tab-travel" role="tabpanel">
+        <div class="tab-pane fade <?= $isTeacher ? 'show active' : '' ?>" id="tab-travel" role="tabpanel">
             <div class="d-flex justify-content-between align-items-center px-4 py-3 bg-light bg-opacity-50 border-bottom">
                 <span class="text-muted small fw-semibold">
                     <i class="bx bx-briefcase-alt-2 me-1 text-info"></i> <?= $isTeacher ? 'ประวัติและรายการขออนุมัติเดินทางไปราชการของท่าน' : 'รายการคำขออนุมัติเดินทางไปราชการล่าสุดของบุคลากร' ?>
